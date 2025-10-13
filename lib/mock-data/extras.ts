@@ -1,0 +1,226 @@
+export interface Extra {
+    id: number
+    name: string
+    category: string
+    unitType: string
+    cost: number
+    status: "active" | "inactive"
+  }
+  
+  export const mockExtras: Extra[] = [
+    // Acabamentos de Impressão
+    {
+      id: 1,
+      name: "Laminação Brilho",
+      category: "Acabamento",
+      unitType: "m²",
+      cost: 2.5,
+      status: "active",
+    },
+    {
+      id: 2,
+      name: "Laminação Mate",
+      category: "Acabamento",
+      unitType: "m²",
+      cost: 2.5,
+      status: "active",
+    },
+    {
+      id: 3,
+      name: "Verniz UV",
+      category: "Acabamento",
+      unitType: "m²",
+      cost: 3.8,
+      status: "active",
+    },
+    {
+      id: 4,
+      name: "Verniz Seletivo",
+      category: "Acabamento",
+      unitType: "m²",
+      cost: 5.2,
+      status: "active",
+    },
+    {
+      id: 5,
+      name: "Hot Stamping Dourado",
+      category: "Acabamento",
+      unitType: "m²",
+      cost: 8.5,
+      status: "active",
+    },
+    {
+      id: 6,
+      name: "Hot Stamping Prateado",
+      category: "Acabamento",
+      unitType: "m²",
+      cost: 8.5,
+      status: "active",
+    },
+    {
+      id: 7,
+      name: "Relevo Seco",
+      category: "Acabamento",
+      unitType: "m²",
+      cost: 6.0,
+      status: "active",
+    },
+    // Corte e Dobragem
+    {
+      id: 8,
+      name: "Corte Laser",
+      category: "Corte",
+      unitType: "hora",
+      cost: 45.0,
+      status: "active",
+    },
+    {
+      id: 9,
+      name: "Corte Especial",
+      category: "Corte",
+      unitType: "unidade",
+      cost: 0.25,
+      status: "active",
+    },
+    {
+      id: 10,
+      name: "Vinco",
+      category: "Dobragem",
+      unitType: "unidade",
+      cost: 0.15,
+      status: "active",
+    },
+    {
+      id: 11,
+      name: "Dobragem Simples",
+      category: "Dobragem",
+      unitType: "unidade",
+      cost: 0.08,
+      status: "active",
+    },
+    {
+      id: 12,
+      name: "Dobragem Complexa",
+      category: "Dobragem",
+      unitType: "unidade",
+      cost: 0.18,
+      status: "active",
+    },
+    // Encadernação
+    {
+      id: 13,
+      name: "Agrafos",
+      category: "Encadernação",
+      unitType: "unidade",
+      cost: 0.12,
+      status: "active",
+    },
+    {
+      id: 14,
+      name: "Wire-O",
+      category: "Encadernação",
+      unitType: "unidade",
+      cost: 1.5,
+      status: "active",
+    },
+    {
+      id: 15,
+      name: "Capa Dura",
+      category: "Encadernação",
+      unitType: "unidade",
+      cost: 4.5,
+      status: "active",
+    },
+    {
+      id: 16,
+      name: "Cola Quente",
+      category: "Encadernação",
+      unitType: "unidade",
+      cost: 0.85,
+      status: "active",
+    },
+    // Personalização Têxtil
+    {
+      id: 17,
+      name: "Serigrafia 1 Cor",
+      category: "Personalização Têxtil",
+      unitType: "unidade",
+      cost: 1.2,
+      status: "active",
+    },
+    {
+      id: 18,
+      name: "Serigrafia Multicolor",
+      category: "Personalização Têxtil",
+      unitType: "unidade",
+      cost: 2.5,
+      status: "active",
+    },
+    {
+      id: 19,
+      name: "Bordado",
+      category: "Personalização Têxtil",
+      unitType: "unidade",
+      cost: 3.5,
+      status: "active",
+    },
+    {
+      id: 20,
+      name: "Transfer Digital",
+      category: "Personalização Têxtil",
+      unitType: "unidade",
+      cost: 2.0,
+      status: "active",
+    },
+    {
+      id: 21,
+      name: "Sublimação",
+      category: "Personalização Têxtil",
+      unitType: "unidade",
+      cost: 2.8,
+      status: "active",
+    },
+    // Montagem e Instalação
+    {
+      id: 22,
+      name: "Montagem Roll-Up",
+      category: "Montagem",
+      unitType: "unidade",
+      cost: 5.0,
+      status: "active",
+    },
+    {
+      id: 23,
+      name: "Instalação Vinil",
+      category: "Instalação",
+      unitType: "m²",
+      cost: 8.0,
+      status: "active",
+    },
+    {
+      id: 24,
+      name: "Instalação Lona",
+      category: "Instalação",
+      unitType: "m²",
+      cost: 12.0,
+      status: "active",
+    },
+    // Embalagem
+    {
+      id: 25,
+      name: "Embalagem Individual",
+      category: "Embalagem",
+      unitType: "unidade",
+      cost: 0.15,
+      status: "active",
+    },
+    {
+      id: 26,
+      name: "Caixa Personalizada",
+      category: "Embalagem",
+      unitType: "unidade",
+      cost: 1.2,
+      status: "inactive",
+    },
+  ]
+  

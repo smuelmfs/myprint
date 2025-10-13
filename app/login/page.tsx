@@ -40,7 +40,7 @@ export default function LoginPage() {
       }
   
       // Redireciona conforme role
-      if (data.role === "admin") router.push("/admin/dashboard");
+      if (data.role === "admin") router.push("/admin");
       else router.push("/dashboard");
   
     } catch (err) {

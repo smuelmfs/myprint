@@ -26,7 +26,7 @@ export async function middleware(req: NextRequest) {
 
     // Se usuário logado tenta acessar login/signup
     if (isPublic && (pathname === "/login" || pathname === "/signup")) {
-      const redirectUrl = role === "admin" ? "/admin/dashboard" : "/dashboard";
+      const redirectUrl = role === "admin" ? "/admin" : "/dashboard";
       return NextResponse.redirect(new URL(redirectUrl, req.url));
     }
 
@@ -35,7 +35,7 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
     if (pathname.startsWith("/dashboard") && role === "admin") {
-      return NextResponse.redirect(new URL("/admin/dashboard", req.url));
+      return NextResponse.redirect(new URL("/admin", req.url));
     }
 
     return NextResponse.next();
