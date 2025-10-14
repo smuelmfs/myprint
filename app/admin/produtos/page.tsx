@@ -6,331 +6,28 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Plus, Search, Pencil, Trash2 } from "lucide-react"
 import Link from "next/link"
-
-const products = [
-  // Impressão Gráfica Tradicional
-  {
-    id: 1,
-    name: "Cartões de Visita",
-    reference: "CV-001",
-    category: "Impressão Gráfica Tradicional",
-    subcategory: "Cartões",
-    unitType: "unidade",
-    baseCost: 0.15,
-    defaultMargin: 150,
-    status: "active",
-  },
-  {
-    id: 2,
-    name: "Flyers A5",
-    reference: "FL-A5-001",
-    category: "Impressão Gráfica Tradicional",
-    subcategory: "Flyers",
-    unitType: "unidade",
-    baseCost: 0.25,
-    defaultMargin: 120,
-    status: "active",
-  },
-  {
-    id: 3,
-    name: "Cartazes A3",
-    reference: "CT-A3-001",
-    category: "Impressão Gráfica Tradicional",
-    subcategory: "Cartazes",
-    unitType: "unidade",
-    baseCost: 2.5,
-    defaultMargin: 100,
-    status: "active",
-  },
-  {
-    id: 4,
-    name: "Brochuras A4",
-    reference: "BR-A4-001",
-    category: "Impressão Gráfica Tradicional",
-    subcategory: "Brochuras",
-    unitType: "unidade",
-    baseCost: 1.8,
-    defaultMargin: 110,
-    status: "active",
-  },
-  {
-    id: 5,
-    name: "Papel Timbrado A4",
-    reference: "PT-A4-001",
-    category: "Impressão Gráfica Tradicional",
-    subcategory: "Papel Timbrado",
-    unitType: "unidade",
-    baseCost: 0.35,
-    defaultMargin: 130,
-    status: "active",
-  },
-  {
-    id: 6,
-    name: "Blocos de Notas A5",
-    reference: "BN-A5-001",
-    category: "Impressão Gráfica Tradicional",
-    subcategory: "Blocos",
-    unitType: "unidade",
-    baseCost: 3.5,
-    defaultMargin: 90,
-    status: "active",
-  },
-  {
-    id: 7,
-    name: "Calendários de Parede",
-    reference: "CL-PAR-001",
-    category: "Impressão Gráfica Tradicional",
-    subcategory: "Calendários",
-    unitType: "unidade",
-    baseCost: 4.2,
-    defaultMargin: 85,
-    status: "active",
-  },
-  // Têxteis Personalizados
-  {
-    id: 8,
-    name: "T-shirts Algodão",
-    reference: "TS-ALG-001",
-    category: "Têxteis Personalizados",
-    subcategory: "T-shirts",
-    unitType: "unidade",
-    baseCost: 5.5,
-    defaultMargin: 120,
-    status: "active",
-  },
-  {
-    id: 9,
-    name: "Sweatshirts",
-    reference: "SW-001",
-    category: "Têxteis Personalizados",
-    subcategory: "Sweatshirts",
-    unitType: "unidade",
-    baseCost: 12.0,
-    defaultMargin: 100,
-    status: "active",
-  },
-  {
-    id: 10,
-    name: "Bonés Bordados",
-    reference: "BC-BOR-001",
-    category: "Têxteis Personalizados",
-    subcategory: "Bonés",
-    unitType: "unidade",
-    baseCost: 6.5,
-    defaultMargin: 110,
-    status: "active",
-  },
-  {
-    id: 11,
-    name: "Polos Piqué",
-    reference: "PL-PIQ-001",
-    category: "Têxteis Personalizados",
-    subcategory: "Polos",
-    unitType: "unidade",
-    baseCost: 8.5,
-    defaultMargin: 105,
-    status: "active",
-  },
-  {
-    id: 12,
-    name: "Sacos de Pano",
-    reference: "SC-PAN-001",
-    category: "Têxteis Personalizados",
-    subcategory: "Sacos",
-    unitType: "unidade",
-    baseCost: 2.8,
-    defaultMargin: 140,
-    status: "active",
-  },
-  // Comunicação Visual & Grande Formato
-  {
-    id: 13,
-    name: "Lonas Publicitárias",
-    reference: "LN-PUB-001",
-    category: "Comunicação Visual & Grande Formato",
-    subcategory: "Lonas",
-    unitType: "m²",
-    baseCost: 15.0,
-    defaultMargin: 80,
-    status: "active",
-  },
-  {
-    id: 14,
-    name: "Vinil Autocolante",
-    reference: "VN-AUT-001",
-    category: "Comunicação Visual & Grande Formato",
-    subcategory: "Vinil",
-    unitType: "m²",
-    baseCost: 12.5,
-    defaultMargin: 90,
-    status: "active",
-  },
-  {
-    id: 15,
-    name: "Roll-ups 85x200cm",
-    reference: "RU-85-001",
-    category: "Comunicação Visual & Grande Formato",
-    subcategory: "Roll-ups",
-    unitType: "unidade",
-    baseCost: 45.0,
-    defaultMargin: 75,
-    status: "active",
-  },
-  {
-    id: 16,
-    name: "Banners X-Banner",
-    reference: "BN-XBN-001",
-    category: "Comunicação Visual & Grande Formato",
-    subcategory: "Banners",
-    unitType: "unidade",
-    baseCost: 35.0,
-    defaultMargin: 80,
-    status: "active",
-  },
-  {
-    id: 17,
-    name: "Placas PVC 5mm",
-    reference: "PL-PVC-001",
-    category: "Comunicação Visual & Grande Formato",
-    subcategory: "Placas",
-    unitType: "m²",
-    baseCost: 25.0,
-    defaultMargin: 85,
-    status: "active",
-  },
-  // Merchandising / Objetos Promocionais
-  {
-    id: 18,
-    name: "Canecas Cerâmica",
-    reference: "CN-CER-001",
-    category: "Merchandising / Objetos Promocionais",
-    subcategory: "Canecas",
-    unitType: "unidade",
-    baseCost: 3.2,
-    defaultMargin: 150,
-    status: "active",
-  },
-  {
-    id: 19,
-    name: "Canetas Metálicas",
-    reference: "CP-MET-001",
-    category: "Merchandising / Objetos Promocionais",
-    subcategory: "Canetas",
-    unitType: "unidade",
-    baseCost: 0.85,
-    defaultMargin: 180,
-    status: "active",
-  },
-  {
-    id: 20,
-    name: "Chaveiros Personalizados",
-    reference: "CH-PER-001",
-    category: "Merchandising / Objetos Promocionais",
-    subcategory: "Chaveiros",
-    unitType: "unidade",
-    baseCost: 1.2,
-    defaultMargin: 160,
-    status: "active",
-  },
-  {
-    id: 21,
-    name: "Powerbanks 5000mAh",
-    reference: "PB-5K-001",
-    category: "Merchandising / Objetos Promocionais",
-    subcategory: "Powerbanks",
-    unitType: "unidade",
-    baseCost: 8.5,
-    defaultMargin: 95,
-    status: "active",
-  },
-  {
-    id: 22,
-    name: "Bolsas Térmicas",
-    reference: "BL-TER-001",
-    category: "Merchandising / Objetos Promocionais",
-    subcategory: "Bolsas",
-    unitType: "unidade",
-    baseCost: 4.5,
-    defaultMargin: 120,
-    status: "inactive",
-  },
-  // Embalagens Personalizadas
-  {
-    id: 23,
-    name: "Caixas Cartão Canelado",
-    reference: "CX-CAN-001",
-    category: "Embalagens Personalizadas",
-    subcategory: "Caixas",
-    unitType: "unidade",
-    baseCost: 1.8,
-    defaultMargin: 110,
-    status: "active",
-  },
-  {
-    id: 24,
-    name: "Sacos de Papel Kraft",
-    reference: "SP-KRA-001",
-    category: "Embalagens Personalizadas",
-    subcategory: "Sacos",
-    unitType: "unidade",
-    baseCost: 0.45,
-    defaultMargin: 140,
-    status: "active",
-  },
-  {
-    id: 25,
-    name: "Rótulos Adesivos",
-    reference: "RT-ADE-001",
-    category: "Embalagens Personalizadas",
-    subcategory: "Rótulos",
-    unitType: "unidade",
-    baseCost: 0.12,
-    defaultMargin: 170,
-    status: "active",
-  },
-  // Linha Sustentável
-  {
-    id: 26,
-    name: "Papel Reciclado A4",
-    reference: "PR-REC-001",
-    category: "Linha Sustentável",
-    subcategory: "Papéis Reciclados",
-    unitType: "kg",
-    baseCost: 2.5,
-    defaultMargin: 100,
-    status: "active",
-  },
-  {
-    id: 27,
-    name: "T-shirts Algodão Orgânico",
-    reference: "TS-ORG-001",
-    category: "Linha Sustentável",
-    subcategory: "Têxteis Orgânicos",
-    unitType: "unidade",
-    baseCost: 8.5,
-    defaultMargin: 110,
-    status: "active",
-  },
-  {
-    id: 28,
-    name: "Canetas Bambu",
-    reference: "CP-BAM-001",
-    category: "Linha Sustentável",
-    subcategory: "Merchandising Ecológico",
-    unitType: "unidade",
-    baseCost: 1.5,
-    defaultMargin: 150,
-    status: "active",
-  },
-]
+import { useToast } from "@/hooks/use-toast"
+import { mockProducts } from "@/lib/mock-data/products"
 
 export default function ProdutosPage() {
+  const { toast } = useToast()
   const [searchTerm, setSearchTerm] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("all")
+  const [deleteProductId, setDeleteProductId] = useState<number | null>(null)
 
-  const filteredProducts = products.filter((product) => {
+  const filteredProducts = mockProducts.filter((product) => {
     const matchesSearch =
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.reference.toLowerCase().includes(searchTerm.toLowerCase())
@@ -338,7 +35,19 @@ export default function ProdutosPage() {
     return matchesSearch && matchesCategory
   })
 
-  const categories = Array.from(new Set(products.map((p) => p.category)))
+  const categories = Array.from(new Set(mockProducts.map((p) => p.category)))
+
+  const handleDelete = () => {
+    const product = mockProducts.find((p) => p.id === deleteProductId)
+    if (product) {
+      toast({
+        title: "Produto desativado",
+        description: `O produto "${product.name}" foi desativado e não aparecerá mais na listagem.`,
+        variant: "destructive",
+      })
+    }
+    setDeleteProductId(null)
+  }
 
   return (
     <div className="space-y-6">
@@ -393,7 +102,6 @@ export default function ProdutosPage() {
               <TableHead className="min-w-[120px]">Tipo de Unidade</TableHead>
               <TableHead className="text-right min-w-[100px]">Custo Base</TableHead>
               <TableHead className="text-right min-w-[100px]">Margem (%)</TableHead>
-              <TableHead className="min-w-[80px]">Status</TableHead>
               <TableHead className="text-right min-w-[100px]">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -414,11 +122,6 @@ export default function ProdutosPage() {
                   <TableCell>{product.unitType}</TableCell>
                   <TableCell className="text-right">€{product.baseCost.toFixed(2)}</TableCell>
                   <TableCell className="text-right">{product.defaultMargin}%</TableCell>
-                  <TableCell>
-                    <Badge variant={product.status === "active" ? "default" : "secondary"}>
-                      {product.status === "active" ? "Ativo" : "Inativo"}
-                    </Badge>
-                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Link href={`/admin/produtos/${product.id}/editar`}>
@@ -426,7 +129,12 @@ export default function ProdutosPage() {
                           <Pencil className="h-4 w-4" />
                         </Button>
                       </Link>
-                      <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => setDeleteProductId(product.id)}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -439,8 +147,26 @@ export default function ProdutosPage() {
       </div>
 
       <div className="text-sm text-muted-foreground">
-        Mostrando {filteredProducts.length} de {products.length} produtos
+        Mostrando {filteredProducts.length} de {mockProducts.length} produtos
       </div>
+
+      <AlertDialog open={deleteProductId !== null} onOpenChange={() => setDeleteProductId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Desativar produto?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação irá desativar o produto. O item não será removido do banco de dados, mas deixará de aparecer na
+              listagem e não poderá ser usado em novos orçamentos.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
+              Desativar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

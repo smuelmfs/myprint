@@ -19,7 +19,7 @@ export default function NovoProdutoPage() {
   const [selectedExtraIds, setSelectedExtraIds] = useState<number[]>([])
   const [categoryFilter, setCategoryFilter] = useState("all")
 
-  const activeExtras = mockExtras.filter((extra) => extra.status === "active")
+  const activeExtras = mockExtras.filter((extra) => extra.status === 1)
 
   const filteredExtras =
     categoryFilter === "all" ? activeExtras : activeExtras.filter((extra) => extra.category === categoryFilter)
