@@ -289,16 +289,15 @@ export default function EditarProdutoPage({ params }: { params: Promise<{ id: st
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Desativar produto?</AlertDialogTitle>
+            <AlertDialogTitle>Excluir produto?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação irá desativar o produto "{product.name}". O item não será removido do banco de dados, mas
-              deixará de aparecer na listagem e não poderá ser selecionado em novos orçamentos.
+              Esta ação irá excluir o produto &quot;{product.name}&quot;. O item não poderá ser selecionado em novos orçamentos.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
-              Desativar
+              Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

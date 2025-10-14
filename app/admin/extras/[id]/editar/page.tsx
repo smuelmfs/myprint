@@ -207,16 +207,15 @@ const EditarExtraPage = ({ params }: { params: Promise<{ id: string }> }) => {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Desativar extra?</AlertDialogTitle>
+            <AlertDialogTitle>Excluir extra?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação irá desativar o extra "{extra.name}". O item não será removido do banco de dados, mas deixará de
-              aparecer na listagem e não poderá ser selecionado em novos produtos.
+                         Esta ação irá excluir o extra &quot;{extra.name}&quot;. O item não poderá ser selecionado em novos produtos.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
-              Desativar
+              Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

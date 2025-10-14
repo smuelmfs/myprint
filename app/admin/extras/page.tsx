@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -145,16 +144,15 @@ export default function ExtrasPage() {
       <AlertDialog open={deleteExtraId !== null} onOpenChange={() => setDeleteExtraId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Desativar extra?</AlertDialogTitle>
+            <AlertDialogTitle>Excluir extra?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação irá desativar o extra. O item não será removido do banco de dados, mas deixará de aparecer na
-              listagem e não poderá ser selecionado em novos produtos.
+              Esta ação irá excluir o extra. O item não poderá ser selecionado em novos produtos.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
-              Desativar
+              Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

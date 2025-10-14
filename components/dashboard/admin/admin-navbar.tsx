@@ -7,10 +7,9 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { LogOut, User, Menu } from "lucide-react"
+import { LogOut, Menu } from "lucide-react"
 
 interface AdminNavbarProps {
     onMenuClick: () => void
