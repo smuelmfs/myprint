@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { use, useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -39,7 +39,7 @@ import {
   FINISH_TYPES,
 } from "@/lib/mock-data/products"
 
-export default function EditarProdutoPage({ params }: { params: Promise<{ id: string }> }) {
+export default function EditarProdutoPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
@@ -53,17 +53,21 @@ export default function EditarProdutoPage({ params }: { params: Promise<{ id: st
   const [supportMaterial, setSupportMaterial] = useState<string>("")
   const [finish, setFinish] = useState<string>("")
 
-  const { id } = use(params)
+  const { id } = params
   const product = mockProducts.find((p) => p.id === Number.parseInt(id))
-  // Initialize controlled select states with existing product values (if any)
-  // Keeping empty string preserves placeholder when no value exists
-  if (product && !paperType && product.paperType) setPaperType(product.paperType)
-  if (product && !material && product.material) setMaterial(product.material)
-  if (product && !fabricType && product.fabricType) setFabricType(product.fabricType)
-  if (product && !printMethod && product.printMethod) setPrintMethod(product.printMethod)
-  if (product && !objectMaterial && product.objectMaterial) setObjectMaterial(product.objectMaterial)
-  if (product && !supportMaterial && product.supportMaterial) setSupportMaterial(product.supportMaterial)
-  if (product && !finish && product.finish) setFinish(product.finish)
+
+  useEffect(() => {
+    if (product) {
+      if (product.productType) setProductType(product.productType)
+      if (product.paperType) setPaperType(product.paperType)
+      if (product.material) setMaterial(product.material)
+      if (product.fabricType) setFabricType(product.fabricType)
+      if (product.printMethod) setPrintMethod(product.printMethod)
+      if (product.objectMaterial) setObjectMaterial(product.objectMaterial)
+      if (product.supportMaterial) setSupportMaterial(product.supportMaterial)
+      if (product.finish) setFinish(product.finish)
+    }
+  }, [product])
 
   const [selectedExtraIds, setSelectedExtraIds] = useState<number[]>([1, 3])
   const [categoryFilter, setCategoryFilter] = useState("all")
@@ -178,7 +182,7 @@ export default function EditarProdutoPage({ params }: { params: Promise<{ id: st
                 <Label htmlFor="category">Categoria</Label>
                 <Select defaultValue={product.category} required>
                   <SelectTrigger id="category" className="w-full">
-                    <SelectValue />
+                    <SelectValue placeholder="Selecione uma categoria" />
                   </SelectTrigger>
                   <SelectContent>
                     {PRODUCT_CATEGORIES.map((category) => (
@@ -211,7 +215,7 @@ export default function EditarProdutoPage({ params }: { params: Promise<{ id: st
                 <Label htmlFor="unitType">Unidade de Medida</Label>
                 <Select defaultValue={product.unitType} required>
                   <SelectTrigger id="unitType" className="w-full">
-                    <SelectValue />
+                    <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
                   <SelectContent>
                     {UNIT_TYPES.map((unit) => (
@@ -224,7 +228,7 @@ export default function EditarProdutoPage({ params }: { params: Promise<{ id: st
               </div>
               <div className="space-y-2">
                 <Label htmlFor="colorType">Tipo de Cor</Label>
-                <Select required>
+                <Select defaultValue={product.colorType} required>
                   <SelectTrigger id="colorType" className="w-full">
                     <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
@@ -248,9 +252,9 @@ export default function EditarProdutoPage({ params }: { params: Promise<{ id: st
               productType === "brochura_catalogo") && (
               <div className="grid gap-4 md:grid-cols-3 p-4 rounded-lg border border-primary/20 bg-primary/5">
                 <div className="space-y-2">
-                <Label htmlFor="paperType">Tipo de Papel</Label>
-                <Select value={paperType || undefined} onValueChange={setPaperType}>
-                  <SelectTrigger id="paperType" className="w-full">
+                  <Label htmlFor="paperType">Tipo de Papel</Label>
+                  <Select value={paperType || undefined} onValueChange={setPaperType}>
+                    <SelectTrigger id="paperType" className="w-full">
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
@@ -278,9 +282,9 @@ export default function EditarProdutoPage({ params }: { params: Promise<{ id: st
             {(productType === "banner_lona" || productType === "adesivo_vinil") && (
               <div className="grid gap-4 md:grid-cols-3 p-4 rounded-lg border border-primary/20 bg-primary/5">
                 <div className="space-y-2">
-                <Label htmlFor="material">Material</Label>
-                <Select value={material || undefined} onValueChange={setMaterial}>
-                  <SelectTrigger id="material" className="w-full">
+                  <Label htmlFor="material">Material</Label>
+                  <Select value={material || undefined} onValueChange={setMaterial}>
+                    <SelectTrigger id="material" className="w-full">
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
@@ -306,9 +310,9 @@ export default function EditarProdutoPage({ params }: { params: Promise<{ id: st
             {productType === "tshirt_textil" && (
               <div className="grid gap-4 md:grid-cols-3 p-4 rounded-lg border border-primary/20 bg-primary/5">
                 <div className="space-y-2">
-                <Label htmlFor="fabricType">Tipo de Tecido</Label>
-                <Select value={fabricType || undefined} onValueChange={setFabricType}>
-                  <SelectTrigger id="fabricType" className="w-full">
+                  <Label htmlFor="fabricType">Tipo de Tecido</Label>
+                  <Select value={fabricType || undefined} onValueChange={setFabricType}>
+                    <SelectTrigger id="fabricType" className="w-full">
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
@@ -325,9 +329,9 @@ export default function EditarProdutoPage({ params }: { params: Promise<{ id: st
                   <Input id="printArea" defaultValue={product.printArea} />
                 </div>
                 <div className="space-y-2">
-                <Label htmlFor="printMethod">Método de Impressão</Label>
-                <Select value={printMethod || undefined} onValueChange={setPrintMethod}>
-                  <SelectTrigger id="printMethod" className="w-full">
+                  <Label htmlFor="printMethod">Método de Impressão</Label>
+                  <Select value={printMethod || undefined} onValueChange={setPrintMethod}>
+                    <SelectTrigger id="printMethod" className="w-full">
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
@@ -345,9 +349,9 @@ export default function EditarProdutoPage({ params }: { params: Promise<{ id: st
             {(productType === "caneca_chaveiro" || productType === "caixa_embalagem") && (
               <div className="grid gap-4 md:grid-cols-2 p-4 rounded-lg border border-primary/20 bg-primary/5">
                 <div className="space-y-2">
-                <Label htmlFor="objectMaterial">Material do Objeto</Label>
-                <Select value={objectMaterial || undefined} onValueChange={setObjectMaterial}>
-                  <SelectTrigger id="objectMaterial" className="w-full">
+                  <Label htmlFor="objectMaterial">Material do Objeto</Label>
+                  <Select value={objectMaterial || undefined} onValueChange={setObjectMaterial}>
+                    <SelectTrigger id="objectMaterial" className="w-full">
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
@@ -369,9 +373,9 @@ export default function EditarProdutoPage({ params }: { params: Promise<{ id: st
             {(productType === "placa_acrilico" || productType === "roll_up") && (
               <div className="grid gap-4 md:grid-cols-3 p-4 rounded-lg border border-primary/20 bg-primary/5">
                 <div className="space-y-2">
-                <Label htmlFor="supportMaterial">Material do Suporte</Label>
-                <Select value={supportMaterial || undefined} onValueChange={setSupportMaterial}>
-                  <SelectTrigger id="supportMaterial" className="w-full">
+                  <Label htmlFor="supportMaterial">Material do Suporte</Label>
+                  <Select value={supportMaterial || undefined} onValueChange={setSupportMaterial}>
+                    <SelectTrigger id="supportMaterial" className="w-full">
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
@@ -388,9 +392,9 @@ export default function EditarProdutoPage({ params }: { params: Promise<{ id: st
                   <Input id="thickness" type="number" defaultValue={product.thickness} />
                 </div>
                 <div className="space-y-2">
-                <Label htmlFor="finish">Acabamento</Label>
-                <Select value={finish || undefined} onValueChange={setFinish}>
-                  <SelectTrigger id="finish" className="w-full">
+                  <Label htmlFor="finish">Acabamento</Label>
+                  <Select value={finish || undefined} onValueChange={setFinish}>
+                    <SelectTrigger id="finish" className="w-full">
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
@@ -523,7 +527,7 @@ export default function EditarProdutoPage({ params }: { params: Promise<{ id: st
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir produto?</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir o produto "{product.name}"? O item não poderá mais ser utilizado.
+              {`Tem certeza que deseja excluir o produto "${product.name}"? O item não poderá mais ser utilizado.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

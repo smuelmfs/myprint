@@ -240,8 +240,7 @@ export default function EditarExtraPage({ params }: { params: Promise<{ id: stri
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir extra?</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir o extra "{extra.name}"? O extra será desativado e não aparecerá mais nas
-              listagens.
+              {`Tem certeza que deseja excluir o extra "${extra.name}"? O extra será desativado e não aparecerá mais nas listagens.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
