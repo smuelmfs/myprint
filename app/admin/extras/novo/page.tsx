@@ -12,7 +12,7 @@ import { ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
-import { EXTRA_CATEGORIES } from "@/lib/mock-data/extras"
+import { EXTRA_CATEGORIES, BILLING_UNITS, APPLICATION_TYPES } from "@/lib/mock-data/extras"
 
 export default function NovoExtraPage() {
   const router = useRouter()
@@ -23,7 +23,6 @@ export default function NovoExtraPage() {
     e.preventDefault()
     setIsLoading(true)
 
-    // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
     setIsLoading(false)
@@ -79,7 +78,7 @@ export default function NovoExtraPage() {
                   Categoria <span className="text-destructive">*</span>
                 </Label>
                 <Select name="category" required>
-                  <SelectTrigger id="category">
+                  <SelectTrigger id="category" className="w-full">
                     <SelectValue placeholder="Selecione uma categoria" />
                   </SelectTrigger>
                   <SelectContent>
@@ -97,7 +96,7 @@ export default function NovoExtraPage() {
                   Tipo de Unidade <span className="text-destructive">*</span>
                 </Label>
                 <Select name="unitType" required>
-                  <SelectTrigger id="unitType">
+                  <SelectTrigger id="unitType" className="w-full">
                     <SelectValue placeholder="Selecione o tipo" />
                   </SelectTrigger>
                   <SelectContent>
@@ -110,9 +109,45 @@ export default function NovoExtraPage() {
               </div>
             </div>
 
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="billingUnit">
+                  Unidade de Cobrança <span className="text-destructive">*</span>
+                </Label>
+                <Select name="billingUnit" required>
+                  <SelectTrigger id="billingUnit" className="w-full">
+                    <SelectValue placeholder="Selecione a unidade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {BILLING_UNITS.map((unit) => (
+                      <SelectItem key={unit} value={unit}>
+                        {unit}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="applicationType">Tipo de Aplicação</Label>
+                <Select name="applicationType">
+                  <SelectTrigger id="applicationType" className="w-full">
+                    <SelectValue placeholder="Selecione o tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {APPLICATION_TYPES.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="cost">
-                Preço Adicional (€) <span className="text-destructive">*</span>
+                Custo Unitário (€) <span className="text-destructive">*</span>
               </Label>
               <Input id="cost" type="number" step="0.01" min="0" placeholder="0.00" required />
             </div>

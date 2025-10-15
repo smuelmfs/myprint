@@ -22,9 +22,9 @@ import { ArrowLeft, Loader2, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
-import { mockExtras, EXTRA_CATEGORIES } from "@/lib/mock-data/extras"
+import { mockExtras, EXTRA_CATEGORIES, BILLING_UNITS, APPLICATION_TYPES } from "@/lib/mock-data/extras"
 
-const EditarExtraPage = ({ params }: { params: Promise<{ id: string }> }) => {
+export default function EditarExtraPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
@@ -32,7 +32,6 @@ const EditarExtraPage = ({ params }: { params: Promise<{ id: string }> }) => {
 
   const { id } = use(params)
 
-  // Mock data - in real app, fetch from database
   const extra = mockExtras.find((e) => e.id === Number.parseInt(id))
 
   if (!extra) {
@@ -56,7 +55,6 @@ const EditarExtraPage = ({ params }: { params: Promise<{ id: string }> }) => {
     e.preventDefault()
     setIsLoading(true)
 
-    // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
     setIsLoading(false)
@@ -71,7 +69,6 @@ const EditarExtraPage = ({ params }: { params: Promise<{ id: string }> }) => {
   const handleDelete = async () => {
     setIsLoading(true)
 
-    // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1000))
 
     setIsLoading(false)
@@ -135,11 +132,11 @@ const EditarExtraPage = ({ params }: { params: Promise<{ id: string }> }) => {
                   Categoria <span className="text-destructive">*</span>
                 </Label>
                 <Select key={`category-${extra.id}`} defaultValue={extra.category} name="category" required>
-                  <SelectTrigger id="category">
+                  <SelectTrigger id="category" className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {EXTRA_CATEGORIES.map((cat: string) => (
+                    {EXTRA_CATEGORIES.map((cat) => (
                       <SelectItem key={cat} value={cat}>
                         {cat}
                       </SelectItem>
@@ -153,7 +150,7 @@ const EditarExtraPage = ({ params }: { params: Promise<{ id: string }> }) => {
                   Tipo de Unidade <span className="text-destructive">*</span>
                 </Label>
                 <Select key={`unitType-${extra.id}`} defaultValue={extra.unitType} name="unitType" required>
-                  <SelectTrigger id="unitType">
+                  <SelectTrigger id="unitType" className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -168,19 +165,53 @@ const EditarExtraPage = ({ params }: { params: Promise<{ id: string }> }) => {
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="cost">
-                  Preço Adicional (€) <span className="text-destructive">*</span>
+                <Label htmlFor="billingUnit">
+                  Unidade de Cobrança <span className="text-destructive">*</span>
                 </Label>
-                <Input
-                  id="cost"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  defaultValue={extra.cost}
-                  placeholder="0.00"
-                  required
-                />
+                <Select key={`billingUnit-${extra.id}`} defaultValue={extra.billingUnit} name="billingUnit" required>
+                  <SelectTrigger id="billingUnit" className="w-full">
+                    <SelectValue placeholder="Selecione a unidade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {BILLING_UNITS.map((unit) => (
+                      <SelectItem key={unit} value={unit}>
+                        {unit}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="applicationType">Tipo de Aplicação</Label>
+                <Select key={`applicationType-${extra.id}`} defaultValue={extra.applicationType} name="applicationType">
+                  <SelectTrigger id="applicationType" className="w-full">
+                    <SelectValue placeholder="Selecione o tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {APPLICATION_TYPES.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="cost">
+                Custo Unitário (€) <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="cost"
+                type="number"
+                step="0.01"
+                min="0"
+                defaultValue={extra.cost}
+                placeholder="0.00"
+                required
+              />
             </div>
           </CardContent>
         </Card>
@@ -209,7 +240,8 @@ const EditarExtraPage = ({ params }: { params: Promise<{ id: string }> }) => {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir extra?</AlertDialogTitle>
             <AlertDialogDescription>
-                         Esta ação irá excluir o extra &quot;{extra.name}&quot;. O item não poderá ser selecionado em novos produtos.
+              Tem certeza que deseja excluir o extra "{extra.name}"? O extra será desativado e não aparecerá mais nas
+              listagens.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -223,5 +255,3 @@ const EditarExtraPage = ({ params }: { params: Promise<{ id: string }> }) => {
     </div>
   )
 }
-
-export default EditarExtraPage

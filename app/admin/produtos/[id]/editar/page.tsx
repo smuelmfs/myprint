@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Textarea } from "@/components/ui/textarea"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,15 +25,45 @@ import { useRouter } from "next/navigation"
 import { mockExtras } from "@/lib/mock-data/extras"
 import { useToast } from "@/hooks/use-toast"
 import { mockProducts } from "@/lib/mock-data/products"
+import {
+  PRODUCT_CATEGORIES,
+  PRODUCT_TYPE_OPTIONS,
+  UNIT_TYPES,
+  COLOR_TYPE_OPTIONS,
+  PAPER_TYPES,
+  LARGE_FORMAT_MATERIALS,
+  FABRIC_TYPES,
+  PRINT_METHODS,
+  OBJECT_MATERIALS,
+  SUPPORT_MATERIALS,
+  FINISH_TYPES,
+} from "@/lib/mock-data/products"
 
 export default function EditarProdutoPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [productType, setProductType] = useState<string>("")
+  const [paperType, setPaperType] = useState<string>("")
+  const [material, setMaterial] = useState<string>("")
+  const [fabricType, setFabricType] = useState<string>("")
+  const [printMethod, setPrintMethod] = useState<string>("")
+  const [objectMaterial, setObjectMaterial] = useState<string>("")
+  const [supportMaterial, setSupportMaterial] = useState<string>("")
+  const [finish, setFinish] = useState<string>("")
 
   const { id } = use(params)
   const product = mockProducts.find((p) => p.id === Number.parseInt(id))
+  // Initialize controlled select states with existing product values (if any)
+  // Keeping empty string preserves placeholder when no value exists
+  if (product && !paperType && product.paperType) setPaperType(product.paperType)
+  if (product && !material && product.material) setMaterial(product.material)
+  if (product && !fabricType && product.fabricType) setFabricType(product.fabricType)
+  if (product && !printMethod && product.printMethod) setPrintMethod(product.printMethod)
+  if (product && !objectMaterial && product.objectMaterial) setObjectMaterial(product.objectMaterial)
+  if (product && !supportMaterial && product.supportMaterial) setSupportMaterial(product.supportMaterial)
+  if (product && !finish && product.finish) setFinish(product.finish)
 
   const [selectedExtraIds, setSelectedExtraIds] = useState<number[]>([1, 3])
   const [categoryFilter, setCategoryFilter] = useState("all")
@@ -137,41 +168,242 @@ export default function EditarProdutoPage({ params }: { params: Promise<{ id: st
               </div>
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="description">Descrição</Label>
+              <Textarea id="description" defaultValue={product.description} rows={3} />
+            </div>
+
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="category">Categoria</Label>
                 <Select defaultValue={product.category} required>
-                  <SelectTrigger id="category">
+                  <SelectTrigger id="category" className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Impressão Gráfica Tradicional">Impressão Gráfica Tradicional</SelectItem>
-                    <SelectItem value="Têxteis Personalizados">Têxteis Personalizados</SelectItem>
-                    <SelectItem value="Comunicação Visual & Grande Formato">
-                      Comunicação Visual & Grande Formato
-                    </SelectItem>
-                    <SelectItem value="Merchandising / Objetos Promocionais">
-                      Merchandising / Objetos Promocionais
-                    </SelectItem>
-                    <SelectItem value="Embalagens Personalizadas">Embalagens Personalizadas</SelectItem>
-                    <SelectItem value="Linha Sustentável">Linha Sustentável</SelectItem>
+                    {PRODUCT_CATEGORIES.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="unitType">Tipo de Unidade</Label>
-                <Select defaultValue={product.unitType} required>
-                  <SelectTrigger id="unitType">
-                    <SelectValue />
+                <Label htmlFor="productType">Tipo de Produto</Label>
+                <Select value={productType} onValueChange={setProductType} required>
+                  <SelectTrigger id="productType" className="w-full">
+                    <SelectValue placeholder="Selecione o tipo" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="unidade">Unidade</SelectItem>
-                    <SelectItem value="m²">m²</SelectItem>
-                    <SelectItem value="kg">kg</SelectItem>
+                    {PRODUCT_TYPE_OPTIONS.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="space-y-2">
+                <Label htmlFor="unitType">Unidade de Medida</Label>
+                <Select defaultValue={product.unitType} required>
+                  <SelectTrigger id="unitType" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {UNIT_TYPES.map((unit) => (
+                      <SelectItem key={unit.value} value={unit.value}>
+                        {unit.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="colorType">Tipo de Cor</Label>
+                <Select required>
+                  <SelectTrigger id="colorType" className="w-full">
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {COLOR_TYPE_OPTIONS.map((color) => (
+                      <SelectItem key={color.value} value={color.value}>
+                        {color.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="format">Formato</Label>
+                <Input id="format" defaultValue={product.format} required />
+              </div>
+            </div>
+
+            {(productType === "flyer_folheto" ||
+              productType === "cartao_visita" ||
+              productType === "brochura_catalogo") && (
+              <div className="grid gap-4 md:grid-cols-3 p-4 rounded-lg border border-primary/20 bg-primary/5">
+                <div className="space-y-2">
+                <Label htmlFor="paperType">Tipo de Papel</Label>
+                <Select value={paperType || undefined} onValueChange={setPaperType}>
+                  <SelectTrigger id="paperType" className="w-full">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PAPER_TYPES.map((paper) => (
+                        <SelectItem key={paper.value} value={paper.value}>
+                          {paper.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="paperWeight">Gramagem (g/m²)</Label>
+                  <Input id="paperWeight" type="number" defaultValue={product.paperWeight} />
+                </div>
+                {productType === "brochura_catalogo" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="pages">Número de Páginas</Label>
+                    <Input id="pages" type="number" defaultValue={product.pages} />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {(productType === "banner_lona" || productType === "adesivo_vinil") && (
+              <div className="grid gap-4 md:grid-cols-3 p-4 rounded-lg border border-primary/20 bg-primary/5">
+                <div className="space-y-2">
+                <Label htmlFor="material">Material</Label>
+                <Select value={material || undefined} onValueChange={setMaterial}>
+                  <SelectTrigger id="material" className="w-full">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {LARGE_FORMAT_MATERIALS.map((material) => (
+                        <SelectItem key={material.value} value={material.value}>
+                          {material.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="width">Largura (m)</Label>
+                  <Input id="width" type="number" step="0.01" defaultValue={product.width} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="height">Altura (m)</Label>
+                  <Input id="height" type="number" step="0.01" defaultValue={product.height} />
+                </div>
+              </div>
+            )}
+
+            {productType === "tshirt_textil" && (
+              <div className="grid gap-4 md:grid-cols-3 p-4 rounded-lg border border-primary/20 bg-primary/5">
+                <div className="space-y-2">
+                <Label htmlFor="fabricType">Tipo de Tecido</Label>
+                <Select value={fabricType || undefined} onValueChange={setFabricType}>
+                  <SelectTrigger id="fabricType" className="w-full">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FABRIC_TYPES.map((fabric) => (
+                        <SelectItem key={fabric.value} value={fabric.value}>
+                          {fabric.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="printArea">Área de Impressão</Label>
+                  <Input id="printArea" defaultValue={product.printArea} />
+                </div>
+                <div className="space-y-2">
+                <Label htmlFor="printMethod">Método de Impressão</Label>
+                <Select value={printMethod || undefined} onValueChange={setPrintMethod}>
+                  <SelectTrigger id="printMethod" className="w-full">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PRINT_METHODS.map((method) => (
+                        <SelectItem key={method.value} value={method.value}>
+                          {method.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+
+            {(productType === "caneca_chaveiro" || productType === "caixa_embalagem") && (
+              <div className="grid gap-4 md:grid-cols-2 p-4 rounded-lg border border-primary/20 bg-primary/5">
+                <div className="space-y-2">
+                <Label htmlFor="objectMaterial">Material do Objeto</Label>
+                <Select value={objectMaterial || undefined} onValueChange={setObjectMaterial}>
+                  <SelectTrigger id="objectMaterial" className="w-full">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {OBJECT_MATERIALS.map((material) => (
+                        <SelectItem key={material.value} value={material.value}>
+                          {material.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="dimensions">Dimensões</Label>
+                  <Input id="dimensions" defaultValue={product.dimensions} />
+                </div>
+              </div>
+            )}
+
+            {(productType === "placa_acrilico" || productType === "roll_up") && (
+              <div className="grid gap-4 md:grid-cols-3 p-4 rounded-lg border border-primary/20 bg-primary/5">
+                <div className="space-y-2">
+                <Label htmlFor="supportMaterial">Material do Suporte</Label>
+                <Select value={supportMaterial || undefined} onValueChange={setSupportMaterial}>
+                  <SelectTrigger id="supportMaterial" className="w-full">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SUPPORT_MATERIALS.map((material) => (
+                        <SelectItem key={material.value} value={material.value}>
+                          {material.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="thickness">Espessura (mm)</Label>
+                  <Input id="thickness" type="number" defaultValue={product.thickness} />
+                </div>
+                <div className="space-y-2">
+                <Label htmlFor="finish">Acabamento</Label>
+                <Select value={finish || undefined} onValueChange={setFinish}>
+                  <SelectTrigger id="finish" className="w-full">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FINISH_TYPES.map((finish) => (
+                        <SelectItem key={finish.value} value={finish.value}>
+                          {finish.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
@@ -291,7 +523,7 @@ export default function EditarProdutoPage({ params }: { params: Promise<{ id: st
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir produto?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação irá excluir o produto &quot;{product.name}&quot;. O item não poderá ser selecionado em novos orçamentos.
+              Tem certeza que deseja excluir o produto "{product.name}"? O item não poderá mais ser utilizado.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
