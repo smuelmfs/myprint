@@ -4,8 +4,8 @@ export interface Extra {
   description?: string
   category: string
   unitType: string
-  billingUnit?: string // New: Unidade de cobrança
-  applicationType?: string // New: Tipo de aplicação
+  billingUnit?: string
+  applicationType?: string
   cost: number
   status: 1 | 0
 }
@@ -26,7 +26,7 @@ export const BILLING_UNITS = ["unidade", "folha", "plano", "m²", "metro", "hora
 export const APPLICATION_TYPES = ["Por peça", "Por lote", "Por folha", "Por área", "Outro"] as const
 
 export const mockExtras: Extra[] = [
-  // Acabamentos de Impressão
+
   {
     id: 1,
     name: "Laminação Brilho",
@@ -104,7 +104,7 @@ export const mockExtras: Extra[] = [
     cost: 6.0,
     status: 1,
   },
-  // Corte e Dobragem
+
   {
     id: 8,
     name: "Corte Laser",
@@ -160,7 +160,7 @@ export const mockExtras: Extra[] = [
     cost: 0.18,
     status: 1,
   },
-  // Encadernação
+
   {
     id: 13,
     name: "Agrafos",
@@ -205,7 +205,7 @@ export const mockExtras: Extra[] = [
     cost: 0.85,
     status: 1,
   },
-  // Personalização Têxtil
+
   {
     id: 17,
     name: "Serigrafia 1 Cor",
@@ -261,7 +261,7 @@ export const mockExtras: Extra[] = [
     cost: 2.8,
     status: 1,
   },
-  // Montagem e Instalação
+
   {
     id: 22,
     name: "Montagem Roll-Up",
@@ -295,7 +295,7 @@ export const mockExtras: Extra[] = [
     cost: 12.0,
     status: 1,
   },
-  // Embalagem
+
   {
     id: 25,
     name: "Embalagem Individual",

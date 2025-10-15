@@ -2,7 +2,7 @@ export interface Product {
   id: number
   name: string
   reference: string
-  description?: string // Added optional description field
+  description?: string
   category: string
   subcategory: string
   productType: string
@@ -12,12 +12,11 @@ export interface Product {
   baseCost: number
   defaultMargin: number
   status: 1 | 0
-  // Type-specific fields (optional, depends on productType)
   pages?: number
   paperCore?: string
   paperCover?: string
-  paperType?: string // Added for paper specifications
-  paperWeight?: number // Added for paper weight in grams
+  paperType?: string
+  paperWeight?: number
   binding?: string
   coverLamination?: string
   width?: number
@@ -27,14 +26,14 @@ export interface Product {
   frontBack?: string
   foil?: boolean
   specialCut?: boolean
-  fabricType?: string // Added for textile products
-  printArea?: string // Added for print area specifications
-  printMethod?: string // Added for printing method
-  objectMaterial?: string // Added for promotional objects
-  dimensions?: string // Added for product dimensions
-  supportMaterial?: string // Added for support/backing material
-  thickness?: number // Added for material thickness
-  finish?: string // Added for finish type
+  fabricType?: string
+  printArea?: string 
+  printMethod?: string 
+  objectMaterial?: string 
+  dimensions?: string 
+  supportMaterial?: string 
+  thickness?: number 
+  finish?: string 
 }
 
 export const PRODUCT_TYPES = [

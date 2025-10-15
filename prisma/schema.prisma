@@ -1,0 +1,197 @@
+//
+// ──────────────────────────────────────────────────────────────
+// SCHEMA PRISMA - SISTEMA DE CÁLCULO DE PRODUÇÃO GRÁFICA
+// Samuel Messias Ferreira de Souza
+// Baseado no arquivo “CÁLCULO DE PRODUÇÃO 2024.xlsx”
+// ──────────────────────────────────────────────────────────────
+//
+
+// -----------------------------
+// CONFIGURAÇÕES GERAIS DO PRISMA
+// -----------------------------
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+//
+// ──────────────────────────────────────────────────────────────
+// ENUMS
+// ──────────────────────────────────────────────────────────────
+//
+
+enum Status {
+  ATIVO
+  INATIVO
+}
+
+//
+// ──────────────────────────────────────────────────────────────
+// TABELAS PRINCIPAIS
+// ──────────────────────────────────────────────────────────────
+//
+
+// -----------------------------
+// CATEGORIA
+// -----------------------------
+model Categoria {
+  id             Int        @id @default(autoincrement())
+  nome           String
+  slug           String?    @unique
+  tipo           String     // "produto" | "extra" | "geral"
+  status         Status     @default(ATIVO)
+  ordem          Int?       // para organizar visualmente no painel
+  produtos       Produto[]
+  extras         Extra[]
+  criadoEm       DateTime   @default(now())
+  atualizadoEm   DateTime   @updatedAt
+}
+
+// -----------------------------
+// UNIDADE DE MEDIDA
+// -----------------------------
+model Unidade {
+  id             Int        @id @default(autoincrement())
+  nome           String     // Ex: "metro quadrado"
+  sigla          String?    // Ex: "m²"
+  status         Status     @default(ATIVO)
+  produtos       Produto[]  @relation("ProdutoUnidade")
+  extras         Extra[]    @relation("ExtraUnidade")
+  criadoEm       DateTime   @default(now())
+  atualizadoEm   DateTime   @updatedAt
+}
+
+// -----------------------------
+// PRODUTO
+// -----------------------------
+model Produto {
+  id               Int        @id @default(autoincrement())
+  nome             String
+  referencia       String     @unique
+  descricao        String?
+  categoriaId      Int
+  categoria        Categoria  @relation(fields: [categoriaId], references: [id])
+  subcategoria     String?
+  tipoProduto      String     // Ex: "cartao_visita", "catalogo", "vinil"
+  unidadeId        Int
+  unidade          Unidade    @relation("ProdutoUnidade", fields: [unidadeId], references: [id])
+
+  // Campos econômicos
+  custoBase        Float
+  margemPadrao     Float
+  precoBase        Float?     // opcional (armazenar custo+margem)
+  status           Status     @default(ATIVO)
+
+  // Características técnicas
+  corTipo          String?    // K, CMYK, etc.
+  formato          String?    // A4, A3, Banner...
+  paginas          Int?
+  gramagem         Int?
+  tipoPapel        String?
+  acabamento       String?
+  largura          Float?
+  altura           Float?
+  areaM2           Float?
+  material         String?
+  metodoImpressao  String?
+  frenteVerso      String?
+  possuiFoil       Boolean?   @default(false)
+  corteEspecial    Boolean?   @default(false)
+  plastificacao    String?
+  dobraVinco       String?
+  espessura        Float?
+  suporteMaterial  String?
+
+  extras           ProdutoExtra[]
+  criadoEm         DateTime   @default(now())
+  atualizadoEm     DateTime   @updatedAt
+}
+
+// -----------------------------
+// EXTRA (acabamentos e adicionais)
+// -----------------------------
+model Extra {
+  id               Int        @id @default(autoincrement())
+  nome             String
+  descricao        String?
+  categoriaId      Int
+  categoria        Categoria  @relation(fields: [categoriaId], references: [id])
+  unidadeId        Int
+  unidade          Unidade    @relation("ExtraUnidade", fields: [unidadeId], references: [id])
+  tipoAplicacao    String?    // Ex: "por folha", "por peça", "por m²"
+  unidadeCobranca  String?    // Texto livre (ex: “m²”, “lote”)
+  custoBase        Float
+  margemPadrao     Float?     @default(0)
+  status           Status     @default(ATIVO)
+  produtos         ProdutoExtra[]
+  criadoEm         DateTime   @default(now())
+  atualizadoEm     DateTime   @updatedAt
+}
+
+// -----------------------------
+// RELAÇÃO PRODUTO ↔ EXTRA
+// -----------------------------
+model ProdutoExtra {
+  id          Int      @id @default(autoincrement())
+  produtoId   Int
+  extraId     Int
+  custoExtra  Float?    // caso o custo varie conforme o produto
+  ativo       Boolean   @default(true)
+  produto     Produto   @relation(fields: [produtoId], references: [id])
+  extra       Extra     @relation(fields: [extraId], references: [id])
+  criadoEm    DateTime  @default(now())
+}
+
+//
+// ──────────────────────────────────────────────────────────────
+// CONFIGURAÇÕES DO SISTEMA
+// ──────────────────────────────────────────────────────────────
+//
+
+model Configuracao {
+  id              Int                 @id @default(autoincrement())
+  margemPadrao    Float               @default(100)
+  criadoEm        DateTime            @default(now())
+  atualizadoEm    DateTime            @updatedAt
+  margensCategoria MargemCategoria[]
+  minimos          MinimoFaturacao[]
+  temposPadrao     TempoPadrao[]
+}
+
+// -----------------------------
+// MARGEM POR CATEGORIA
+// -----------------------------
+model MargemCategoria {
+  id              Int           @id @default(autoincrement())
+  categoria       String        // Ex: "impressao", "vinil", "pvc"
+  margem          Float
+  configuracaoId  Int
+  configuracao    Configuracao  @relation(fields: [configuracaoId], references: [id])
+}
+
+// -----------------------------
+// MÍNIMO DE FATURAÇÃO
+// -----------------------------
+model MinimoFaturacao {
+  id              Int           @id @default(autoincrement())
+  tipo            String        // Ex: "por peça", "por m²"
+  valor           Float
+  configuracaoId  Int
+  configuracao    Configuracao  @relation(fields: [configuracaoId], references: [id])
+}
+
+// -----------------------------
+// TEMPOS PADRÃO
+// -----------------------------
+model TempoPadrao {
+  id              Int           @id @default(autoincrement())
+  operacao        String        // Ex: "impressao offset", "corte vinil"
+  tempoMin        Int           // tempo médio em minutos
+  valorHora       Float         // custo da hora de operação
+  configuracaoId  Int
+  configuracao    Configuracao  @relation(fields: [configuracaoId], references: [id])
+}
