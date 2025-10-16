@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -15,37 +15,174 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Plus, Search, Pencil, Trash2 } from "lucide-react"
+import { Plus, Search, Pencil, Trash2, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
-import { mockProducts } from "@/lib/mock-data/products"
+
+// Tipos para produtos
+interface Produto {
+  id: number
+  nome: string
+  referencia: string
+  descricao?: string
+  categoria: {
+    id: number
+    nome: string
+  }
+  unidade: {
+    id: number
+    nome: string
+    sigla?: string
+  }
+  custoBase: number
+  margemPadrao: number
+  precoBase?: number
+  status: "ATIVO" | "INATIVO"
+  tipoProduto: string
+  corTipo?: string
+  formato?: string
+  paginas?: number
+  gramagem?: number
+  tipoPapel?: string
+  acabamento?: string
+  largura?: number
+  altura?: number
+  areaM2?: number
+  material?: string
+  metodoImpressao?: string
+  frenteVerso?: string
+  possuiFoil?: boolean
+  corteEspecial?: boolean
+  plastificacao?: string
+  dobraVinco?: string
+  espessura?: number
+  suporteMaterial?: string
+  pesoPapel?: number
+  mioloPapel?: string
+  capaPapel?: string
+  encadernacao?: string
+  laminacaoCapa?: string
+  precoPorM2?: number
+  tipoTecido?: string
+  areaImpressao?: string
+  metodoImpressao2?: string
+  materialObjeto?: string
+  dimensoes?: string
+  materialSuporte?: string
+  espessura2?: number
+  acabamento2?: string
+  criadoEm: string
+  atualizadoEm: string
+}
 
 export default function ProdutosPage() {
   const { toast } = useToast()
   const [searchTerm, setSearchTerm] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("all")
   const [deleteProductId, setDeleteProductId] = useState<number | null>(null)
+  const [products, setProducts] = useState<Produto[]>([])
+  const [categories, setCategories] = useState<{ id: number; nome: string }[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isDeleting, setIsDeleting] = useState(false)
 
-  const filteredProducts = mockProducts.filter((product) => {
+  // Carregar dados iniciais
+  useEffect(() => {
+    loadData()
+  }, [])
+
+  const loadData = async () => {
+    try {
+      setIsLoading(true)
+      
+      // Carregar produtos
+      const productsResponse = await fetch("/api/produtos")
+      if (productsResponse.ok) {
+        const productsData = await productsResponse.json()
+        setProducts(productsData.data || [])
+      }
+
+      // Carregar categorias
+      const categoriesResponse = await fetch("/api/categorias")
+      if (categoriesResponse.ok) {
+        const categoriesData = await categoriesResponse.json()
+        setCategories(categoriesData)
+      }
+    } catch (error) {
+      console.error("Erro ao carregar dados:", error)
+      toast({
+        title: "Erro ao carregar dados",
+        description: "Não foi possível carregar os produtos.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const filteredProducts = products.filter((product) => {
     const matchesSearch =
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.reference.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = categoryFilter === "all" || product.category === categoryFilter
+      product.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.referencia.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesCategory = categoryFilter === "all" || product.categoria.nome === categoryFilter
     return matchesSearch && matchesCategory
   })
 
-  const categories = Array.from(new Set(mockProducts.map((p) => p.category)))
+  const handleDelete = async () => {
+    if (!deleteProductId) return
 
-  const handleDelete = () => {
-    const product = mockProducts.find((p) => p.id === deleteProductId)
-    if (product) {
+    try {
+      setIsDeleting(true)
+      
+      const response = await fetch("/api/produtos", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id: deleteProductId }),
+      })
+
+      if (response.ok) {
+        // Remover produto da lista local
+        setProducts(products.filter((p) => p.id !== deleteProductId))
+        
+        const product = products.find((p) => p.id === deleteProductId)
+        toast({
+          title: "Produto desativado",
+          description: `O produto "${product?.nome}" foi desativado e não aparecerá mais na listagem.`,
+          variant: "destructive",
+        })
+      } else {
+        const error = await response.json()
+        throw new Error(error.message || "Erro ao desativar produto")
+      }
+    } catch (error) {
+      console.error("Erro ao desativar produto:", error)
       toast({
-        title: "Produto desativado",
-        description: `O produto "${product.name}" foi desativado e não aparecerá mais na listagem.`,
+        title: "Erro ao desativar produto",
+        description: error instanceof Error ? error.message : "Erro desconhecido",
         variant: "destructive",
       })
+    } finally {
+      setIsDeleting(false)
+      setDeleteProductId(null)
     }
-    setDeleteProductId(null)
+  }
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-balance">Produtos</h1>
+          <p className="text-muted-foreground mt-1 text-sm lg:text-base">
+            Gerencie os produtos disponíveis para orçamentação
+          </p>
+        </div>
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <span className="ml-2">Carregando produtos...</span>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -82,8 +219,8 @@ export default function ProdutosPage() {
           <SelectContent>
             <SelectItem value="all">Todas as categorias</SelectItem>
             {categories.map((category) => (
-              <SelectItem key={category} value={category}>
-                {category}
+              <SelectItem key={category.id} value={category.nome}>
+                {category.nome}
               </SelectItem>
             ))}
           </SelectContent>
@@ -114,13 +251,13 @@ export default function ProdutosPage() {
             ) : (
               filteredProducts.map((product) => (
                 <TableRow key={product.id}>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell className="text-muted-foreground">{product.reference}</TableCell>
-                  <TableCell className="text-sm">{product.category}</TableCell>
-                  <TableCell className="text-sm">{product.subcategory}</TableCell>
-                  <TableCell>{product.unitType}</TableCell>
-                  <TableCell className="text-right">€{product.baseCost.toFixed(2)}</TableCell>
-                  <TableCell className="text-right">{product.defaultMargin}%</TableCell>
+                  <TableCell className="font-medium">{product.nome}</TableCell>
+                  <TableCell className="text-muted-foreground">{product.referencia}</TableCell>
+                  <TableCell className="text-sm">{product.categoria.nome}</TableCell>
+                  <TableCell className="text-sm">{product.tipoProduto}</TableCell>
+                  <TableCell>{product.unidade.sigla || product.unidade.nome}</TableCell>
+                  <TableCell className="text-right">€{product.custoBase.toFixed(2)}</TableCell>
+                  <TableCell className="text-right">{product.margemPadrao}%</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Link href={`/admin/produtos/${product.id}/editar`}>
@@ -133,8 +270,13 @@ export default function ProdutosPage() {
                         size="icon"
                         className="text-destructive hover:text-destructive"
                         onClick={() => setDeleteProductId(product.id)}
+                        disabled={isDeleting}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        {isDeleting && deleteProductId === product.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   </TableCell>
@@ -146,7 +288,7 @@ export default function ProdutosPage() {
       </div>
 
       <div className="text-sm text-muted-foreground">
-        Mostrando {filteredProducts.length} de {mockProducts.length} produtos
+        Mostrando {filteredProducts.length} de {products.length} produtos
       </div>
 
       <AlertDialog open={deleteProductId !== null} onOpenChange={() => setDeleteProductId(null)}>
@@ -158,9 +300,20 @@ export default function ProdutosPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
-              Excluir
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete} 
+              className="bg-destructive text-destructive-foreground"
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Desativando...
+                </>
+              ) : (
+                "Desativar"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

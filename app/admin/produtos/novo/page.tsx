@@ -1,59 +1,255 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeft } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
+import { useToast } from "@/hooks/use-toast"
+import { ArrowLeft, Loader2, Save } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { mockExtras } from "@/lib/mock-data/extras"
-import {
-  PRODUCT_CATEGORIES,
-  PRODUCT_TYPE_OPTIONS,
-  UNIT_TYPES,
-  COLOR_TYPE_OPTIONS,
-  PAPER_TYPES,
-  LARGE_FORMAT_MATERIALS,
-  FABRIC_TYPES,
-  PRINT_METHODS,
-  OBJECT_MATERIALS,
-  SUPPORT_MATERIALS,
-  FINISH_TYPES,
-} from "@/lib/mock-data/products"
+
+// Tipos
+interface Categoria {
+  id: number
+  nome: string
+}
+
+interface Unidade {
+  id: number
+  nome: string
+  sigla?: string
+}
+
+interface Configuracao {
+  id: number
+  margemPadrao: number
+  margensCategoria: Array<{
+    id: number
+    categoria: string
+    margem: number
+  }>
+}
 
 export default function NovoProdutoPage() {
   const router = useRouter()
-  const [selectedExtraIds, setSelectedExtraIds] = useState<number[]>([])
-  const [categoryFilter, setCategoryFilter] = useState("all")
-  const [productType, setProductType] = useState<string>("")
+  const { toast } = useToast()
+  
+  // Estados
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
+  const [categorias, setCategorias] = useState<Categoria[]>([])
+  const [unidades, setUnidades] = useState<Unidade[]>([])
+  const [configuracao, setConfiguracao] = useState<Configuracao | null>(null)
 
-  const activeExtras = mockExtras.filter((extra) => extra.status === 1)
+  // Estados do formulário
+  const [formData, setFormData] = useState({
+    nome: "",
+    referencia: "",
+    descricao: "",
+    categoriaId: "",
+    unidadeId: "",
+    tipoProduto: "",
+    custoBase: "",
+    margemPadrao: "",
+    corTipo: "",
+    formato: "",
+    paginas: "",
+    gramagem: "",
+    tipoPapel: "",
+    acabamento: "",
+    largura: "",
+    altura: "",
+    areaM2: "",
+    material: "",
+    metodoImpressao: "",
+    frenteVerso: "",
+    possuiFoil: false,
+    corteEspecial: false,
+    plastificacao: "",
+    dobraVinco: "",
+    espessura: "",
+    suporteMaterial: "",
+    pesoPapel: "",
+    mioloPapel: "",
+    capaPapel: "",
+    encadernacao: "",
+    laminacaoCapa: "",
+    precoPorM2: "",
+    tipoTecido: "",
+    areaImpressao: "",
+    metodoImpressao2: "",
+    materialObjeto: "",
+    dimensoes: "",
+    materialSuporte: "",
+    espessura2: "",
+    acabamento2: "",
+  })
 
-  const filteredExtras =
-    categoryFilter === "all" ? activeExtras : activeExtras.filter((extra) => extra.category === categoryFilter)
+  // Carregar dados iniciais
+  useEffect(() => {
+    loadData()
+  }, [])
 
-  const categories = Array.from(new Set(activeExtras.map((e) => e.category)))
+  const loadData = async () => {
+    try {
+      setIsLoading(true)
+      
+      // Carregar categorias
+      const categoriesResponse = await fetch("/api/categorias")
+      if (categoriesResponse.ok) {
+        const categoriesData = await categoriesResponse.json()
+        setCategorias(categoriesData)
+      }
 
-  const toggleExtra = (extraId: number) => {
-    setSelectedExtraIds((prev) => (prev.includes(extraId) ? prev.filter((id) => id !== extraId) : [...prev, extraId]))
+      // Carregar unidades
+      const unitsResponse = await fetch("/api/unidades")
+      if (unitsResponse.ok) {
+        const unitsData = await unitsResponse.json()
+        setUnidades(unitsData)
+      }
+
+      // Carregar configurações
+      const configResponse = await fetch("/api/configuracao")
+      if (configResponse.ok) {
+        const configData = await configResponse.json()
+        setConfiguracao(configData)
+        // Definir margem padrão baseada na configuração
+        setFormData(prev => ({
+          ...prev,
+          margemPadrao: configData.margemPadrao.toString()
+        }))
+      }
+    } catch (error) {
+      console.error("Erro ao carregar dados:", error)
+      toast({
+        title: "Erro ao carregar dados",
+        description: "Não foi possível carregar os dados necessários.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const selectedExtras = activeExtras.filter((extra) => selectedExtraIds.includes(extra.id))
+  // Calcular margem baseada na categoria selecionada
+  const calcularMargemPorCategoria = (categoriaId: string) => {
+    if (!configuracao || !categoriaId) return formData.margemPadrao
 
-  const totalExtrasCost = selectedExtras.reduce((sum, extra) => sum + extra.cost, 0)
+    const categoria = categorias.find(c => c.id.toString() === categoriaId)
+    if (!categoria) return formData.margemPadrao
 
-  const handleSubmit = (e: React.FormEvent) => {
+    const margemCategoria = configuracao.margensCategoria.find(
+      mc => mc.categoria === categoria.nome
+    )
+
+    return margemCategoria ? margemCategoria.margem.toString() : formData.margemPadrao
+  }
+
+  // Atualizar margem quando categoria mudar
+  useEffect(() => {
+    if (formData.categoriaId) {
+      const novaMargem = calcularMargemPorCategoria(formData.categoriaId)
+      setFormData(prev => ({
+        ...prev,
+        margemPadrao: novaMargem
+      }))
+    }
+  }, [formData.categoriaId, configuracao, categorias])
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("[v0] Form submitted with selected extras:", selectedExtraIds)
-    // Form submission logic will be implemented later
-    router.push("/admin/produtos")
+    
+    if (!formData.nome || !formData.referencia || !formData.categoriaId || !formData.unidadeId) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Por favor, preencha todos os campos obrigatórios.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      setIsSaving(true)
+
+      const response = await fetch("/api/produtos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...formData,
+          custoBase: parseFloat(formData.custoBase) || 0,
+          margemPadrao: parseFloat(formData.margemPadrao) || 0,
+          categoriaId: parseInt(formData.categoriaId),
+          unidadeId: parseInt(formData.unidadeId),
+          paginas: formData.paginas ? parseInt(formData.paginas) : null,
+          gramagem: formData.gramagem ? parseInt(formData.gramagem) : null,
+          largura: formData.largura ? parseFloat(formData.largura) : null,
+          altura: formData.altura ? parseFloat(formData.altura) : null,
+          areaM2: formData.areaM2 ? parseFloat(formData.areaM2) : null,
+          espessura: formData.espessura ? parseFloat(formData.espessura) : null,
+          pesoPapel: formData.pesoPapel ? parseFloat(formData.pesoPapel) : null,
+          precoPorM2: formData.precoPorM2 ? parseFloat(formData.precoPorM2) : null,
+          espessura2: formData.espessura2 ? parseFloat(formData.espessura2) : null,
+        }),
+      })
+
+      if (response.ok) {
+        toast({
+          title: "Produto criado",
+          description: "O produto foi criado com sucesso.",
+        })
+        router.push("/admin/produtos")
+      } else {
+        const error = await response.json()
+        throw new Error(error.message || "Erro ao criar produto")
+      }
+    } catch (error) {
+      console.error("Erro ao criar produto:", error)
+      toast({
+        title: "Erro ao criar produto",
+        description: error instanceof Error ? error.message : "Erro desconhecido",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleInputChange = (field: string, value: string | boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }))
+  }
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Link href="/admin/produtos">
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-balance">Novo Produto</h1>
+            <p className="text-muted-foreground mt-1 text-sm lg:text-base">
+              Crie um novo produto para o catálogo
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <span className="ml-2">Carregando dados...</span>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -65,368 +261,270 @@ export default function NovoProdutoPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-balance">Novo Produto</h1>
-          <p className="text-muted-foreground mt-1">Adicione um novo produto ao catálogo</p>
+          <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-balance">Novo Produto</h1>
+          <p className="text-muted-foreground mt-1 text-sm lg:text-base">
+            Crie um novo produto para o catálogo
+          </p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Informações Básicas */}
         <Card>
           <CardHeader>
             <CardTitle>Informações Básicas</CardTitle>
-            <CardDescription>Preencha os dados principais do produto</CardDescription>
+            <CardDescription>
+              Dados essenciais do produto
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid gap-3 md:grid-cols-2">
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="name">Nome do Produto</Label>
-                <Input id="name" placeholder="Ex: Cartões de Visita" required />
+                <Label htmlFor="nome">Nome do Produto *</Label>
+                <Input
+                  id="nome"
+                  value={formData.nome}
+                  onChange={(e) => handleInputChange("nome", e.target.value)}
+                  placeholder="Ex: Cartões de Visita"
+                  required
+                />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="reference">Referência</Label>
-                <Input id="reference" placeholder="Ex: CV-001" required />
-              </div>
-            </div>
-
-            <div className="grid gap-3 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="category">Categoria</Label>
-                <Select required>
-                  <SelectTrigger id="category" className="w-full">
-                    <SelectValue placeholder="Selecione uma categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PRODUCT_CATEGORIES.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="productType">Tipo de Produto</Label>
-                <Select value={productType} onValueChange={setProductType} required>
-                  <SelectTrigger id="productType" className="w-full">
-                    <SelectValue placeholder="Selecione o tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PRODUCT_TYPE_OPTIONS.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid gap-3 md:grid-cols-3">
-              <div className="space-y-2">
-                <Label htmlFor="unitType">Unidade de Medida</Label>
-                <Select required>
-                  <SelectTrigger id="unitType" className="w-full">
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {UNIT_TYPES.map((unit) => (
-                      <SelectItem key={unit.value} value={unit.value}>
-                        {unit.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="colorType">Tipo de Cor</Label>
-                <Select required>
-                  <SelectTrigger id="colorType" className="w-full">
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {COLOR_TYPE_OPTIONS.map((color) => (
-                      <SelectItem key={color.value} value={color.value}>
-                        {color.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="format">Formato</Label>
-                <Input id="format" placeholder="Ex: A4, 85x55mm" required />
+                <Label htmlFor="referencia">Referência *</Label>
+                <Input
+                  id="referencia"
+                  value={formData.referencia}
+                  onChange={(e) => handleInputChange("referencia", e.target.value)}
+                  placeholder="Ex: CV-001"
+                  required
+                />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Descrição</Label>
-              <Textarea id="description" placeholder="Descrição detalhada do produto" rows={3} />
+              <Label htmlFor="descricao">Descrição</Label>
+              <Textarea
+                id="descricao"
+                value={formData.descricao}
+                onChange={(e) => handleInputChange("descricao", e.target.value)}
+                placeholder="Descrição detalhada do produto"
+                rows={3}
+              />
             </div>
 
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-3">
               <div className="space-y-2">
-                <Label htmlFor="baseCost">Custo Base (€)</Label>
-                <Input id="baseCost" type="number" step="0.01" placeholder="0.00" required />
+                <Label htmlFor="categoria">Categoria *</Label>
+                <Select value={formData.categoriaId} onValueChange={(value) => handleInputChange("categoriaId", value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categorias.map((categoria) => (
+                      <SelectItem key={categoria.id} value={categoria.id.toString()}>
+                        {categoria.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
+
               <div className="space-y-2">
-                <Label htmlFor="defaultMargin">Margem Padrão (%)</Label>
-                <Input id="defaultMargin" type="number" placeholder="100" required />
+                <Label htmlFor="unidade">Unidade *</Label>
+                <Select value={formData.unidadeId} onValueChange={(value) => handleInputChange("unidadeId", value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma unidade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {unidades.map((unidade) => (
+                      <SelectItem key={unidade.id} value={unidade.id.toString()}>
+                        {unidade.sigla ? `${unidade.nome} (${unidade.sigla})` : unidade.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="tipoProduto">Tipo de Produto</Label>
+                <Input
+                  id="tipoProduto"
+                  value={formData.tipoProduto}
+                  onChange={(e) => handleInputChange("tipoProduto", e.target.value)}
+                  placeholder="Ex: Cartão de Visita"
+                />
               </div>
             </div>
-
-            {(productType === "flyer_folheto" ||
-              productType === "cartao_visita" ||
-              productType === "brochura_catalogo") && (
-              <div className="grid gap-3 md:grid-cols-3 p-4 rounded-lg border border-primary/20 bg-primary/5">
-                <div className="space-y-2">
-                  <Label htmlFor="paperType">Tipo de Papel</Label>
-                  <Select>
-                    <SelectTrigger id="paperType" className="w-full">
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PAPER_TYPES.map((paper) => (
-                        <SelectItem key={paper.value} value={paper.value}>
-                          {paper.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="paperWeight">Gramagem (g/m²)</Label>
-                  <Input id="paperWeight" type="number" placeholder="Ex: 300" />
-                </div>
-                {productType === "brochura_catalogo" && (
-                  <div className="space-y-2">
-                    <Label htmlFor="pages">Número de Páginas</Label>
-                    <Input id="pages" type="number" placeholder="Ex: 16" />
-                  </div>
-                )}
-              </div>
-            )}
-
-            {(productType === "banner_lona" || productType === "adesivo_vinil") && (
-              <div className="grid gap-4 md:grid-cols-3 p-4 rounded-lg border border-primary/20 bg-primary/5">
-                <div className="space-y-2">
-                  <Label htmlFor="material">Material</Label>
-                  <Select>
-                    <SelectTrigger id="material" className="w-full">
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {LARGE_FORMAT_MATERIALS.map((material) => (
-                        <SelectItem key={material.value} value={material.value}>
-                          {material.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="width">Largura (m)</Label>
-                  <Input id="width" type="number" step="0.01" placeholder="Ex: 1.5" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="height">Altura (m)</Label>
-                  <Input id="height" type="number" step="0.01" placeholder="Ex: 2.0" />
-                </div>
-              </div>
-            )}
-
-            {productType === "tshirt_textil" && (
-              <div className="grid gap-4 md:grid-cols-3 p-4 rounded-lg border border-primary/20 bg-primary/5">
-                <div className="space-y-2">
-                  <Label htmlFor="fabricType">Tipo de Tecido</Label>
-                  <Select>
-                    <SelectTrigger id="fabricType" className="w-full">
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {FABRIC_TYPES.map((fabric) => (
-                        <SelectItem key={fabric.value} value={fabric.value}>
-                          {fabric.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="printArea">Área de Impressão</Label>
-                  <Input id="printArea" placeholder="Ex: A4, 30x40cm" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="printMethod">Método de Impressão</Label>
-                  <Select>
-                    <SelectTrigger id="printMethod" className="w-full">
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PRINT_METHODS.map((method) => (
-                        <SelectItem key={method.value} value={method.value}>
-                          {method.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            )}
-
-            {(productType === "caneca_chaveiro" || productType === "caixa_embalagem") && (
-              <div className="grid gap-4 md:grid-cols-2 p-4 rounded-lg border border-primary/20 bg-primary/5">
-                <div className="space-y-2">
-                  <Label htmlFor="objectMaterial">Material do Objeto</Label>
-                  <Select>
-                    <SelectTrigger id="objectMaterial" className="w-full">
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {OBJECT_MATERIALS.map((material) => (
-                        <SelectItem key={material.value} value={material.value}>
-                          {material.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="dimensions">Dimensões</Label>
-                  <Input id="dimensions" placeholder="Ex: 10x10x10cm" />
-                </div>
-              </div>
-            )}
-
-            {(productType === "placa_acrilico" || productType === "roll_up") && (
-              <div className="grid gap-4 md:grid-cols-3 p-4 rounded-lg border border-primary/20 bg-primary/5">
-                <div className="space-y-2">
-                  <Label htmlFor="supportMaterial">Material do Suporte</Label>
-                  <Select>
-                    <SelectTrigger id="supportMaterial" className="w-full">
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SUPPORT_MATERIALS.map((material) => (
-                        <SelectItem key={material.value} value={material.value}>
-                          {material.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="thickness">Espessura (mm)</Label>
-                  <Input id="thickness" type="number" placeholder="Ex: 3" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="finish">Acabamento</Label>
-                  <Select>
-                    <SelectTrigger id="finish" className="w-full">
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {FINISH_TYPES.map((finish) => (
-                        <SelectItem key={finish.value} value={finish.value}>
-                          {finish.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
 
+        {/* Informações Econômicas */}
         <Card>
           <CardHeader>
-            <CardTitle>Extras e Acabamentos</CardTitle>
+            <CardTitle>Informações Econômicas</CardTitle>
             <CardDescription>
-              Selecione os extras disponíveis para este produto ({selectedExtraIds.length} selecionados)
+              Custos e margens do produto
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Label htmlFor="extraCategory" className="whitespace-nowrap">
-                Filtrar por:
-              </Label>
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger id="extraCategory" className="w-full sm:w-[250px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as categorias</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="max-h-[400px] overflow-y-auto rounded-lg border border-border p-4 space-y-3">
-              {filteredExtras.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  Nenhum extra disponível nesta categoria
-                </p>
-              ) : (
-                filteredExtras.map((extra) => (
-                  <div
-                    key={extra.id}
-                    className="flex items-start space-x-3 rounded-lg border border-border bg-muted/30 p-3 hover:bg-muted/50 transition-colors"
-                  >
-                    <Checkbox
-                      id={`extra-${extra.id}`}
-                      checked={selectedExtraIds.includes(extra.id)}
-                      onCheckedChange={() => toggleExtra(extra.id)}
-                    />
-                    <div className="flex-1 space-y-1">
-                      <label
-                        htmlFor={`extra-${extra.id}`}
-                        className="text-sm font-medium leading-none cursor-pointer peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        {extra.name}
-                      </label>
-                      <p className="text-xs text-muted-foreground">
-                        {extra.category} • €{extra.cost.toFixed(2)}/{extra.unitType}
-                      </p>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-
-            {selectedExtras.length > 0 && (
-              <div className="rounded-lg border border-border bg-accent/10 p-4 space-y-2">
-                <h4 className="text-sm font-semibold">Extras Selecionados:</h4>
-                <div className="space-y-1">
-                  {selectedExtras.map((extra) => (
-                    <div key={extra.id} className="flex justify-between text-sm">
-                      <span>{extra.name}</span>
-                      <span className="text-muted-foreground">
-                        €{extra.cost.toFixed(2)}/{extra.unitType}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                <div className="pt-2 border-t border-border flex justify-between font-semibold text-sm">
-                  <span>Custo Total de Extras:</span>
-                  <span>€{totalExtrasCost.toFixed(2)}</span>
-                </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="custoBase">Custo Base (€) *</Label>
+                <Input
+                  id="custoBase"
+                  type="number"
+                  step="0.01"
+                  value={formData.custoBase}
+                  onChange={(e) => handleInputChange("custoBase", e.target.value)}
+                  placeholder="0.00"
+                  required
+                />
               </div>
-            )}
+              <div className="space-y-2">
+                <Label htmlFor="margemPadrao">Margem Padrão (%)</Label>
+                <Input
+                  id="margemPadrao"
+                  type="number"
+                  step="0.01"
+                  value={formData.margemPadrao}
+                  onChange={(e) => handleInputChange("margemPadrao", e.target.value)}
+                  placeholder="100"
+                />
+                <p className="text-sm text-muted-foreground">
+                  Margem baseada na categoria selecionada
+                </p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
+        {/* Características Técnicas */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Características Técnicas</CardTitle>
+            <CardDescription>
+              Especificações técnicas do produto
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="corTipo">Tipo de Cor</Label>
+                <Input
+                  id="corTipo"
+                  value={formData.corTipo}
+                  onChange={(e) => handleInputChange("corTipo", e.target.value)}
+                  placeholder="Ex: CMYK, K, Pantone"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="formato">Formato</Label>
+                <Input
+                  id="formato"
+                  value={formData.formato}
+                  onChange={(e) => handleInputChange("formato", e.target.value)}
+                  placeholder="Ex: A4, A5, 85x55mm"
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="space-y-2">
+                <Label htmlFor="paginas">Páginas</Label>
+                <Input
+                  id="paginas"
+                  type="number"
+                  value={formData.paginas}
+                  onChange={(e) => handleInputChange("paginas", e.target.value)}
+                  placeholder="Ex: 16"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="gramagem">Gramagem (g/m²)</Label>
+                <Input
+                  id="gramagem"
+                  type="number"
+                  value={formData.gramagem}
+                  onChange={(e) => handleInputChange("gramagem", e.target.value)}
+                  placeholder="Ex: 115"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="tipoPapel">Tipo de Papel</Label>
+                <Input
+                  id="tipoPapel"
+                  value={formData.tipoPapel}
+                  onChange={(e) => handleInputChange("tipoPapel", e.target.value)}
+                  placeholder="Ex: Couché"
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="largura">Largura (cm)</Label>
+                <Input
+                  id="largura"
+                  type="number"
+                  step="0.01"
+                  value={formData.largura}
+                  onChange={(e) => handleInputChange("largura", e.target.value)}
+                  placeholder="Ex: 8.5"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="altura">Altura (cm)</Label>
+                <Input
+                  id="altura"
+                  type="number"
+                  step="0.01"
+                  value={formData.altura}
+                  onChange={(e) => handleInputChange("altura", e.target.value)}
+                  placeholder="Ex: 5.5"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="possuiFoil"
+                  checked={formData.possuiFoil}
+                  onCheckedChange={(checked) => handleInputChange("possuiFoil", checked)}
+                />
+                <Label htmlFor="possuiFoil">Possui Foil</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="corteEspecial"
+                  checked={formData.corteEspecial}
+                  onCheckedChange={(checked) => handleInputChange("corteEspecial", checked)}
+                />
+                <Label htmlFor="corteEspecial">Corte Especial</Label>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Botões de Ação */}
         <div className="flex justify-end gap-4">
           <Link href="/admin/produtos">
-            <Button type="button" variant="outline">
+            <Button variant="outline" type="button">
               Cancelar
             </Button>
           </Link>
-          <Button type="submit" className="bg-accent hover:bg-accent/90 text-accent-foreground">
-            Salvar Produto
+          <Button type="submit" disabled={isSaving}>
+            {isSaving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Salvando...
+              </>
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                Salvar Produto
+              </>
+            )}
           </Button>
         </div>
       </form>
