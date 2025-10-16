@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -39,7 +39,7 @@ import {
   FINISH_TYPES,
 } from "@/lib/mock-data/products"
 
-export default function EditarProdutoPage({ params }: { params: { id: string } }) {
+export default function EditarProdutoPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
@@ -52,8 +52,12 @@ export default function EditarProdutoPage({ params }: { params: { id: string } }
   const [objectMaterial, setObjectMaterial] = useState<string>("")
   const [supportMaterial, setSupportMaterial] = useState<string>("")
   const [finish, setFinish] = useState<string>("")
+  const [category, setCategory] = useState<string>("")
+  const [unitType, setUnitType] = useState<string>("")
+  const [colorType, setColorType] = useState<string>("")
 
-  const { id } = params
+  const resolvedParams = use(params)
+  const { id } = resolvedParams
   const product = mockProducts.find((p) => p.id === Number.parseInt(id))
 
   useEffect(() => {
@@ -66,6 +70,9 @@ export default function EditarProdutoPage({ params }: { params: { id: string } }
       if (product.objectMaterial) setObjectMaterial(product.objectMaterial)
       if (product.supportMaterial) setSupportMaterial(product.supportMaterial)
       if (product.finish) setFinish(product.finish)
+      if (product.category) setCategory(product.category)
+      if (product.unitType) setUnitType(product.unitType)
+      if (product.colorType) setColorType(product.colorType)
     }
   }, [product])
 
@@ -180,7 +187,7 @@ export default function EditarProdutoPage({ params }: { params: { id: string } }
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="category">Categoria</Label>
-                <Select defaultValue={product.category} required>
+                <Select value={category || undefined} onValueChange={setCategory} required>
                   <SelectTrigger id="category" className="w-full">
                     <SelectValue placeholder="Selecione uma categoria" />
                   </SelectTrigger>
@@ -213,7 +220,7 @@ export default function EditarProdutoPage({ params }: { params: { id: string } }
             <div className="grid gap-4 md:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="unitType">Unidade de Medida</Label>
-                <Select defaultValue={product.unitType} required>
+                <Select value={unitType || undefined} onValueChange={setUnitType} required>
                   <SelectTrigger id="unitType" className="w-full">
                     <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
@@ -228,7 +235,7 @@ export default function EditarProdutoPage({ params }: { params: { id: string } }
               </div>
               <div className="space-y-2">
                 <Label htmlFor="colorType">Tipo de Cor</Label>
-                <Select defaultValue={product.colorType} required>
+                <Select value={colorType || undefined} onValueChange={setColorType} required>
                   <SelectTrigger id="colorType" className="w-full">
                     <SelectValue placeholder="Selecione" />
                   </SelectTrigger>

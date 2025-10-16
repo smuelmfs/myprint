@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { use, useState } from "react"
+import { use, useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -29,10 +29,23 @@ export default function EditarExtraPage({ params }: { params: Promise<{ id: stri
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [category, setCategory] = useState<string>("")
+  const [unitType, setUnitType] = useState<string>("")
+  const [billingUnit, setBillingUnit] = useState<string>("")
+  const [applicationType, setApplicationType] = useState<string>("")
 
   const { id } = use(params)
 
   const extra = mockExtras.find((e) => e.id === Number.parseInt(id))
+
+  useEffect(() => {
+    if (extra) {
+      setCategory(extra.category || "")
+      setUnitType(extra.unitType || "")
+      setBillingUnit(extra.billingUnit || "")
+      setApplicationType(extra.applicationType || "")
+    }
+  }, [extra])
 
   if (!extra) {
     return (
@@ -131,9 +144,9 @@ export default function EditarExtraPage({ params }: { params: Promise<{ id: stri
                 <Label htmlFor="category">
                   Categoria <span className="text-destructive">*</span>
                 </Label>
-                <Select key={`category-${extra.id}`} defaultValue={extra.category} name="category" required>
+                <Select value={category || undefined} onValueChange={setCategory} required>
                   <SelectTrigger id="category" className="w-full">
-                    <SelectValue />
+                    <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
                   <SelectContent>
                     {EXTRA_CATEGORIES.map((cat) => (
@@ -149,9 +162,9 @@ export default function EditarExtraPage({ params }: { params: Promise<{ id: stri
                 <Label htmlFor="unitType">
                   Tipo de Unidade <span className="text-destructive">*</span>
                 </Label>
-                <Select key={`unitType-${extra.id}`} defaultValue={extra.unitType} name="unitType" required>
+                <Select value={unitType || undefined} onValueChange={setUnitType} required>
                   <SelectTrigger id="unitType" className="w-full">
-                    <SelectValue />
+                    <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="unidade">Unidade</SelectItem>
@@ -168,7 +181,7 @@ export default function EditarExtraPage({ params }: { params: Promise<{ id: stri
                 <Label htmlFor="billingUnit">
                   Unidade de Cobrança <span className="text-destructive">*</span>
                 </Label>
-                <Select key={`billingUnit-${extra.id}`} defaultValue={extra.billingUnit} name="billingUnit" required>
+                <Select value={billingUnit || undefined} onValueChange={setBillingUnit} required>
                   <SelectTrigger id="billingUnit" className="w-full">
                     <SelectValue placeholder="Selecione a unidade" />
                   </SelectTrigger>
@@ -184,7 +197,7 @@ export default function EditarExtraPage({ params }: { params: Promise<{ id: stri
 
               <div className="space-y-2">
                 <Label htmlFor="applicationType">Tipo de Aplicação</Label>
-                <Select key={`applicationType-${extra.id}`} defaultValue={extra.applicationType} name="applicationType">
+                <Select value={applicationType || undefined} onValueChange={setApplicationType}>
                   <SelectTrigger id="applicationType" className="w-full">
                     <SelectValue placeholder="Selecione o tipo" />
                   </SelectTrigger>

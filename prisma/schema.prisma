@@ -86,7 +86,7 @@ model Produto {
   precoBase        Float?     // opcional (armazenar custo+margem)
   status           Status     @default(ATIVO)
 
-  // Características técnicas
+  // Características técnicas básicas
   corTipo          String?    // K, CMYK, etc.
   formato          String?    // A4, A3, Banner...
   paginas          Int?
@@ -106,6 +106,22 @@ model Produto {
   espessura        Float?
   suporteMaterial  String?
 
+  // Campos adicionais do frontend
+  pesoPapel        Float?     // paperWeight
+  mioloPapel       String?    // paperCore
+  capaPapel        String?    // paperCover
+  encadernacao     String?    // binding
+  laminacaoCapa    String?    // coverLamination
+  precoPorM2       Float?     // pricePerM2
+  tipoTecido       String?    // fabricType
+  areaImpressao    String?    // printArea
+  metodoImpressao2 String?   // printMethod
+  materialObjeto   String?    // objectMaterial
+  dimensoes        String?    // dimensions
+  materialSuporte  String?   // supportMaterial
+  espessura2       Float?     // thickness
+  acabamento2      String?    // finish
+
   extras           ProdutoExtra[]
   criadoEm         DateTime   @default(now())
   atualizadoEm     DateTime   @updatedAt
@@ -123,10 +139,16 @@ model Extra {
   unidadeId        Int
   unidade          Unidade    @relation("ExtraUnidade", fields: [unidadeId], references: [id])
   tipoAplicacao    String?    // Ex: "por folha", "por peça", "por m²"
-  unidadeCobranca  String?    // Texto livre (ex: “m²”, “lote”)
+  unidadeCobranca  String?    // Texto livre (ex: "m²", "lote")
   custoBase        Float
   margemPadrao     Float?     @default(0)
   status           Status     @default(ATIVO)
+  
+  // Campos adicionais do frontend
+  unidadeTipo      String?    // unitType (unidade, m², hora, kg)
+  unidadeFaturamento String? // billingUnit
+  tipoAplicacao2   String?    // applicationType
+  
   produtos         ProdutoExtra[]
   criadoEm         DateTime   @default(now())
   atualizadoEm     DateTime   @updatedAt
