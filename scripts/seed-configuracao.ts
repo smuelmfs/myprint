@@ -252,7 +252,12 @@ async function seedConfiguracao() {
 
       if (categoria && unidade) {
         await prisma.produto.upsert({
-          where: { referencia: produto.referencia },
+          where: { 
+            produto_referencia_ativo: {
+              referencia: produto.referencia,
+              status: "ATIVO"
+            }
+          },
           update: {},
           create: {
             nome: produto.nome,

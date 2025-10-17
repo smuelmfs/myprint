@@ -26,14 +26,8 @@ interface Extra {
     nome: string
     sigla?: string
   }
-  tipoAplicacao?: string
-  unidadeCobranca?: string
-  custoBase: number
-  margemPadrao: number
+  custo: number
   status: "ATIVO" | "INATIVO"
-  unidadeTipo?: string
-  unidadeFaturamento?: string
-  tipoAplicacao2?: string
   criadoEm: string
   atualizadoEm: string
 }
@@ -41,6 +35,7 @@ interface Extra {
 interface Categoria {
   id: number
   nome: string
+  tipo: string
 }
 
 interface Unidade {
@@ -49,15 +44,15 @@ interface Unidade {
   sigla?: string
 }
 
-interface Configuracao {
-  id: number
-  margemPadrao: number
-  margensCategoria: Array<{
-    id: number
-    categoria: string
-    margem: number
-  }>
-}
+// interface Configuracao {
+//   id: number
+//   margemPadrao: number
+//   margensCategoria: Array<{
+//     id: number
+//     categoria: string
+//     margem: number
+//   }>
+// }
 
 export default function EditarExtraPage() {
   const router = useRouter()
@@ -70,7 +65,7 @@ export default function EditarExtraPage() {
   const [extra, setExtra] = useState<Extra | null>(null)
   const [categorias, setCategorias] = useState<Categoria[]>([])
   const [unidades, setUnidades] = useState<Unidade[]>([])
-  const [configuracao, setConfiguracao] = useState<Configuracao | null>(null)
+  // const [configuracao, setConfiguracao] = useState<Configuracao | null>(null)
 
   // Estados do formulário
   const [formData, setFormData] = useState({
@@ -78,13 +73,7 @@ export default function EditarExtraPage() {
     descricao: "",
     categoriaId: "",
     unidadeId: "",
-    tipoAplicacao: "",
-    unidadeCobranca: "",
-    custoBase: "",
-    margemPadrao: "",
-    unidadeTipo: "",
-    unidadeFaturamento: "",
-    tipoAplicacao2: "",
+    custo: "",
   })
 
   // Carregar dados iniciais
@@ -92,7 +81,7 @@ export default function EditarExtraPage() {
     if (params.id) {
       loadData()
     }
-  }, [params.id])
+  }, [params.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadData = async () => {
     try {
@@ -110,13 +99,7 @@ export default function EditarExtraPage() {
           descricao: extraData.data.descricao || "",
           categoriaId: extraData.data.categoria.id.toString(),
           unidadeId: extraData.data.unidade.id.toString(),
-          tipoAplicacao: extraData.data.tipoAplicacao || "",
-          unidadeCobranca: extraData.data.unidadeCobranca || "",
-          custoBase: extraData.data.custoBase.toString(),
-          margemPadrao: extraData.data.margemPadrao.toString(),
-          unidadeTipo: extraData.data.unidadeTipo || "",
-          unidadeFaturamento: extraData.data.unidadeFaturamento || "",
-          tipoAplicacao2: extraData.data.tipoAplicacao2 || "",
+          custo: extraData.data.custo.toString(),
         })
       }
 
@@ -135,11 +118,11 @@ export default function EditarExtraPage() {
       }
 
       // Carregar configurações
-      const configResponse = await fetch("/api/configuracao")
-      if (configResponse.ok) {
-        const configData = await configResponse.json()
-        setConfiguracao(configData)
-      }
+      // const configResponse = await fetch("/api/configuracao")
+      // if (configResponse.ok) {
+      //   const configData = await configResponse.json()
+      //   setConfiguracao(configData)
+      // }
     } catch (error) {
       console.error("Erro ao carregar dados:", error)
       toast({
@@ -152,35 +135,15 @@ export default function EditarExtraPage() {
     }
   }
 
-  // Calcular margem baseada na categoria selecionada
-  const calcularMargemPorCategoria = (categoriaId: string) => {
-    if (!configuracao || !categoriaId) return formData.margemPadrao
-
-    const categoria = categorias.find(c => c.id.toString() === categoriaId)
-    if (!categoria) return formData.margemPadrao
-
-    const margemCategoria = configuracao.margensCategoria.find(
-      mc => mc.categoria === categoria.nome
-    )
-
-    return margemCategoria ? margemCategoria.margem.toString() : formData.margemPadrao
-  }
-
-  // Atualizar margem quando categoria mudar
-  useEffect(() => {
-    if (formData.categoriaId) {
-      const novaMargem = calcularMargemPorCategoria(formData.categoriaId)
-      setFormData(prev => ({
-        ...prev,
-        margemPadrao: novaMargem
-      }))
-    }
-  }, [formData.categoriaId, configuracao, categorias])
+  // Filtrar categorias por tipo (extra/geral)
+  const categoriasFiltradas = categorias.filter(categoria => 
+    categoria.tipo === 'extra' || categoria.tipo === 'geral'
+  )
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!formData.nome || !formData.categoriaId || !formData.unidadeId) {
+    if (!formData.nome || !formData.categoriaId || !formData.unidadeId || !formData.custo) {
       toast({
         title: "Campos obrigatórios",
         description: "Por favor, preencha todos os campos obrigatórios.",
@@ -200,8 +163,7 @@ export default function EditarExtraPage() {
         body: JSON.stringify({
           id: params.id,
           ...formData,
-          custoBase: parseFloat(formData.custoBase) || 0,
-          margemPadrao: parseFloat(formData.margemPadrao) || 0,
+          custo: parseFloat(formData.custo),
           categoriaId: parseInt(formData.categoriaId),
           unidadeId: parseInt(formData.unidadeId),
         }),
@@ -324,7 +286,7 @@ export default function EditarExtraPage() {
                     <SelectValue placeholder="Selecione uma categoria" />
                   </SelectTrigger>
                   <SelectContent>
-                    {categorias.map((categoria) => (
+                    {categoriasFiltradas.map((categoria) => (
                       <SelectItem key={categoria.id} value={categoria.id.toString()}>
                         {categoria.nome}
                       </SelectItem>
@@ -347,12 +309,12 @@ export default function EditarExtraPage() {
           </CardContent>
         </Card>
 
-        {/* Informações de Unidade */}
+        {/* Informações de Unidade e Custo */}
         <Card>
           <CardHeader>
-            <CardTitle>Informações de Unidade</CardTitle>
+            <CardTitle>Unidade e Custo</CardTitle>
             <CardDescription>
-              Unidade de medida e aplicação
+              Unidade de medida e custo unitário
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -373,74 +335,16 @@ export default function EditarExtraPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="tipoAplicacao">Tipo de Aplicação</Label>
+                <Label htmlFor="custo">Custo Unitário (€) *</Label>
                 <Input
-                  id="tipoAplicacao"
-                  value={formData.tipoAplicacao}
-                  onChange={(e) => handleInputChange("tipoAplicacao", e.target.value)}
-                  placeholder="Ex: por folha, por peça"
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="unidadeCobranca">Unidade de Cobrança</Label>
-                <Input
-                  id="unidadeCobranca"
-                  value={formData.unidadeCobranca}
-                  onChange={(e) => handleInputChange("unidadeCobranca", e.target.value)}
-                  placeholder="Ex: m², lote"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="unidadeTipo">Tipo de Unidade</Label>
-                <Input
-                  id="unidadeTipo"
-                  value={formData.unidadeTipo}
-                  onChange={(e) => handleInputChange("unidadeTipo", e.target.value)}
-                  placeholder="Ex: unidade, m², hora"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Informações Econômicas */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Informações Econômicas</CardTitle>
-            <CardDescription>
-              Custos e margens do extra
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="custoBase">Custo Base (€) *</Label>
-                <Input
-                  id="custoBase"
+                  id="custo"
                   type="number"
                   step="0.01"
-                  value={formData.custoBase}
-                  onChange={(e) => handleInputChange("custoBase", e.target.value)}
+                  value={formData.custo}
+                  onChange={(e) => handleInputChange("custo", e.target.value)}
                   placeholder="0.00"
                   required
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="margemPadrao">Margem Padrão (%)</Label>
-                <Input
-                  id="margemPadrao"
-                  type="number"
-                  step="0.01"
-                  value={formData.margemPadrao}
-                  onChange={(e) => handleInputChange("margemPadrao", e.target.value)}
-                  placeholder="100"
-                />
-                <p className="text-sm text-muted-foreground">
-                  Margem baseada na categoria selecionada
-                </p>
               </div>
             </div>
           </CardContent>

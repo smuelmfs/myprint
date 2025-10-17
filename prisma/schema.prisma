@@ -71,11 +71,10 @@ model Unidade {
 model Produto {
   id               Int        @id @default(autoincrement())
   nome             String
-  referencia       String     @unique
+  referencia       String
   descricao        String?
   categoriaId      Int
   categoria        Categoria  @relation(fields: [categoriaId], references: [id])
-  subcategoria     String?
   tipoProduto      String     // Ex: "cartao_visita", "catalogo", "vinil"
   unidadeId        Int
   unidade          Unidade    @relation("ProdutoUnidade", fields: [unidadeId], references: [id])
@@ -83,48 +82,39 @@ model Produto {
   // Campos econômicos
   custoBase        Float
   margemPadrao     Float
-  precoBase        Float?     // opcional (armazenar custo+margem)
   status           Status     @default(ATIVO)
 
-  // Características técnicas básicas
+  // Características técnicas principais
   corTipo          String?    // K, CMYK, etc.
   formato          String?    // A4, A3, Banner...
-  paginas          Int?
-  gramagem         Int?
-  tipoPapel        String?
-  acabamento       String?
-  largura          Float?
-  altura           Float?
-  areaM2           Float?
-  material         String?
-  metodoImpressao  String?
-  frenteVerso      String?
+  paginas          Int?       // Para brochuras/catálogos
+  gramagem         Int?       // Para papéis
+  tipoPapel        String?    // Couché, Offset, etc.
+  acabamento       String?    // Brilho, Fosco, etc.
+  largura          Float?     // Para banners/lonas
+  altura           Float?     // Para banners/lonas
+  material         String?    // Lona, Vinil, etc.
+  metodoImpressao  String?    // Serigrafia, Sublimação, etc.
+  frenteVerso      String?    // Sim/Não
   possuiFoil       Boolean?   @default(false)
   corteEspecial    Boolean?   @default(false)
-  plastificacao    String?
-  dobraVinco       String?
-  espessura        Float?
-  suporteMaterial  String?
+  plastificacao    String?    // Brilho, Fosco, etc.
+  dobraVinco       String?    // Sim/Não
+  espessura        Float?     // Para placas/acrílicos
+  suporteMaterial  String?    // Alumínio, PVC, etc.
 
-  // Campos adicionais do frontend
-  pesoPapel        Float?     // paperWeight
-  mioloPapel       String?    // paperCore
-  capaPapel        String?    // paperCover
-  encadernacao     String?    // binding
-  laminacaoCapa    String?    // coverLamination
-  precoPorM2       Float?     // pricePerM2
-  tipoTecido       String?    // fabricType
-  areaImpressao    String?    // printArea
-  metodoImpressao2 String?   // printMethod
-  materialObjeto   String?    // objectMaterial
-  dimensoes        String?    // dimensions
-  materialSuporte  String?   // supportMaterial
-  espessura2       Float?     // thickness
-  acabamento2      String?    // finish
+  // Campos específicos por tipo de produto
+  tipoTecido       String?    // Para têxteis
+  areaImpressao    String?    // Para têxteis
+  materialObjeto   String?    // Para objetos (cerâmica, metal, etc.)
+  dimensoes        String?    // Para objetos (10x10x10cm)
+  materialSuporte  String?    // Para roll-ups/placas
 
   extras           ProdutoExtra[]
   criadoEm         DateTime   @default(now())
   atualizadoEm     DateTime   @updatedAt
+
+  @@unique([referencia, status], name: "produto_referencia_ativo")
 }
 
 // -----------------------------
@@ -138,16 +128,17 @@ model Extra {
   categoria        Categoria  @relation(fields: [categoriaId], references: [id])
   unidadeId        Int
   unidade          Unidade    @relation("ExtraUnidade", fields: [unidadeId], references: [id])
-  tipoAplicacao    String?    // Ex: "por folha", "por peça", "por m²"
-  unidadeCobranca  String?    // Texto livre (ex: "m²", "lote")
-  custoBase        Float
-  margemPadrao     Float?     @default(0)
+  custo            Float?     // Custo unitário do extra
   status           Status     @default(ATIVO)
   
-  // Campos adicionais do frontend
-  unidadeTipo      String?    // unitType (unidade, m², hora, kg)
-  unidadeFaturamento String? // billingUnit
-  tipoAplicacao2   String?    // applicationType
+  // Campos adicionais para configuração de extras
+  tipoAplicacao    String?    // Tipo de aplicação do extra
+  unidadeCobranca  String?    // Unidade de cobrança
+  custoBase        Float?     // Custo base do extra
+  margemPadrao     Float?     // Margem padrão
+  unidadeTipo      String?    // Tipo de unidade
+  unidadeFaturamento String?  // Unidade de faturamento
+  tipoAplicacao2   String?    // Tipo de aplicação secundário
   
   produtos         ProdutoExtra[]
   criadoEm         DateTime   @default(now())

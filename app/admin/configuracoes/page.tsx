@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
@@ -88,12 +88,11 @@ export default function ConfiguracoesPage() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [showExitDialog, setShowExitDialog] = useState(false)
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null)
-  const initialDataRef = useRef<any>(null)
 
   // Carregar dados iniciais
   useEffect(() => {
     loadData()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Detectar mudanças não salvas
   useEffect(() => {
@@ -105,15 +104,6 @@ export default function ConfiguracoesPage() {
       }
     }
 
-    // Interceptar navegação do Next.js
-    const handleRouteChange = (url: string) => {
-      if (hasUnsavedChanges) {
-        setPendingNavigation(url)
-        setShowExitDialog(true)
-        return false
-      }
-      return true
-    }
 
     window.addEventListener('beforeunload', handleBeforeUnload)
     
@@ -1077,7 +1067,7 @@ export default function ConfiguracoesPage() {
             <div className="space-y-3">
               <Label>Margens Configuradas</Label>
               <div className="space-y-2">
-                {configuracao?.margensCategoria.map((margin) => (
+                {(configuracao?.margensCategoria || []).map((margin) => (
                   <div key={margin.id} className="flex items-center justify-between p-3 border rounded-lg bg-muted/50">
                     <div className="flex-1">
                       <p className="font-medium text-sm">{margin.categoria}</p>
@@ -1163,7 +1153,7 @@ export default function ConfiguracoesPage() {
             <div className="space-y-3">
               <Label>Mínimos Configurados</Label>
               <div className="space-y-2">
-                {configuracao?.minimos.map((minimum) => (
+                {(configuracao?.minimos || []).map((minimum) => (
                   <div key={minimum.id} className="flex items-center justify-between p-3 border rounded-lg bg-muted/50">
                     <div className="flex-1">
                       <p className="font-medium text-sm capitalize">Por {minimum.tipo}</p>
@@ -1250,7 +1240,7 @@ export default function ConfiguracoesPage() {
             <div className="space-y-3">
               <Label>Tempos Configurados</Label>
               <div className="space-y-2">
-                {configuracao?.temposPadrao.map((time) => (
+                {(configuracao?.temposPadrao || []).map((time) => (
                   <div key={time.id} className="flex items-center justify-between p-3 border rounded-lg bg-muted/50">
                     <div className="flex-1">
                       <p className="font-medium text-sm">{time.operacao}</p>

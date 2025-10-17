@@ -35,14 +35,7 @@ export async function POST(request: Request) {
         descricao: data.descricao || null,
         categoriaId: data.categoriaId,
         unidadeId: data.unidadeId,
-        tipoAplicacao: data.tipoAplicacao || null,
-        unidadeCobranca: data.unidadeCobranca || null,
-        custoBase: parseFloat(data.custoBase),
-        margemPadrao: data.margemPadrao ? parseFloat(data.margemPadrao) : 0,
-        // Campos adicionais do frontend
-        unidadeTipo: data.unidadeTipo || null,
-        unidadeFaturamento: data.unidadeFaturamento || null,
-        tipoAplicacao2: data.tipoAplicacao2 || null,
+        custo: parseFloat(data.custo),
       },
     })
 
@@ -68,15 +61,7 @@ export async function PUT(request: Request) {
         descricao: data.descricao || null,
         categoriaId: data.categoriaId,
         unidadeId: data.unidadeId,
-        tipoAplicacao: data.tipoAplicacao || null,
-        unidadeCobranca: data.unidadeCobranca || null,
-        custoBase: parseFloat(data.custoBase),
-        margemPadrao: data.margemPadrao ? parseFloat(data.margemPadrao) : 0,
-        // Campos adicionais do frontend
-        unidadeTipo: data.unidadeTipo || null,
-        unidadeFaturamento: data.unidadeFaturamento || null,
-        tipoAplicacao2: data.tipoAplicacao2 || null,
-        atualizadoEm: new Date(),
+        custo: parseFloat(data.custo),
       },
     })
 

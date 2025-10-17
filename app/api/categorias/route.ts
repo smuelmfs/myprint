@@ -22,7 +22,7 @@ export async function GET() {
 // POST - Criar nova categoria
 export async function POST(request: NextRequest) {
   try {
-    const { nome, tipo = "geral", ordem } = await request.json()
+    const { nome, tipo = "geral" } = await request.json()
 
     if (!nome) {
       return NextResponse.json(

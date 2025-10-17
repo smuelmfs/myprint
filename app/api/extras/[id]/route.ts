@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
 // GET - Buscar extra por ID
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params
     const extra = await prisma.extra.findUnique({
-      where: { id: parseInt(params.id) },
+      where: { id: parseInt(id) },
       include: {
         categoria: true,
         unidade: true,
@@ -30,12 +31,13 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 // PUT - Atualizar extra por ID
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params
     const data = await request.json()
 
     const extraAtualizado = await prisma.extra.update({
-      where: { id: parseInt(params.id) },
+      where: { id: parseInt(id) },
       data: {
         nome: data.nome,
         descricao: data.descricao || null,
@@ -43,11 +45,12 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         unidadeId: data.unidadeId,
         tipoAplicacao: data.tipoAplicacao || null,
         unidadeCobranca: data.unidadeCobranca || null,
-        custoBase: parseFloat(data.custoBase),
-        margemPadrao: data.margemPadrao ? parseFloat(data.margemPadrao) : 0,
+        custoBase: data.custoBase ? parseFloat(data.custoBase) : null,
+        margemPadrao: data.margemPadrao ? parseFloat(data.margemPadrao) : null,
         unidadeTipo: data.unidadeTipo || null,
         unidadeFaturamento: data.unidadeFaturamento || null,
         tipoAplicacao2: data.tipoAplicacao2 || null,
+        custo: data.custo ? parseFloat(data.custo) : null,
         atualizadoEm: new Date(),
       },
       include: {
@@ -67,10 +70,11 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 // DELETE - Inativar extra por ID
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params
     await prisma.extra.update({
-      where: { id: parseInt(params.id) },
+      where: { id: parseInt(id) },
       data: { status: "INATIVO" },
     })
 

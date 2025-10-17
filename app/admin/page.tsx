@@ -89,7 +89,7 @@ export default function AdminDashboard() {
                 { action: "Produto criado", item: "Calendários 2025", time: "Há 2 horas" },
                 { action: "Produto editado", item: "Cartões de Visita", time: "Há 4 horas" },
                 { action: "Extra adicionado", item: "Laminação Brilho", time: "Há 6 horas" },
-                { action: "Produto desativado", item: "Flyers A6", time: "Há 1 dia" },
+                { action: "Produto excluido", item: "Flyers A6", time: "Há 1 dia" },
               ].map((activity, index) => (
                 <div key={index} className="flex items-start gap-3">
                   <div className="mt-0.5 h-2 w-2 rounded-full bg-accent shrink-0" />

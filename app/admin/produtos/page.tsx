@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
@@ -88,7 +89,7 @@ export default function ProdutosPage() {
   // Carregar dados iniciais
   useEffect(() => {
     loadData()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadData = async () => {
     try {
@@ -98,6 +99,7 @@ export default function ProdutosPage() {
       const productsResponse = await fetch("/api/produtos")
       if (productsResponse.ok) {
         const productsData = await productsResponse.json()
+        console.log('Produtos carregados:', productsData.data)
         setProducts(productsData.data || [])
       }
 
@@ -105,6 +107,7 @@ export default function ProdutosPage() {
       const categoriesResponse = await fetch("/api/categorias")
       if (categoriesResponse.ok) {
         const categoriesData = await categoriesResponse.json()
+        console.log('Categorias carregadas:', categoriesData)
         setCategories(categoriesData)
       }
     } catch (error) {
@@ -123,7 +126,17 @@ export default function ProdutosPage() {
     const matchesSearch =
       product.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.referencia.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = categoryFilter === "all" || product.categoria.nome === categoryFilter
+    
+    // Debug: verificar comparação de categorias
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Filtro categoria:', {
+        categoryFilter,
+        productCategory: product.categoria.nome,
+        match: categoryFilter === "all" || product.categoria.nome.toLowerCase().trim() === categoryFilter.toLowerCase().trim()
+      })
+    }
+    
+    const matchesCategory = categoryFilter === "all" || product.categoria.nome.toLowerCase().trim() === categoryFilter.toLowerCase().trim()
     return matchesSearch && matchesCategory
   })
 
@@ -147,18 +160,18 @@ export default function ProdutosPage() {
         
         const product = products.find((p) => p.id === deleteProductId)
         toast({
-          title: "Produto desativado",
-          description: `O produto "${product?.nome}" foi desativado e não aparecerá mais na listagem.`,
+          title: "Produto excluido",
+          description: `O produto "${product?.nome}" foi excluido e não aparecerá mais na listagem.`,
           variant: "destructive",
         })
       } else {
         const error = await response.json()
-        throw new Error(error.message || "Erro ao desativar produto")
+        throw new Error(error.message || "Erro ao excluir produto")
       }
     } catch (error) {
-      console.error("Erro ao desativar produto:", error)
+      console.error("Erro ao excluir produto:", error)
       toast({
-        title: "Erro ao desativar produto",
+        title: "Erro ao excluir produto",
         description: error instanceof Error ? error.message : "Erro desconhecido",
         variant: "destructive",
       })
@@ -231,57 +244,102 @@ export default function ProdutosPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="min-w-[150px]">Nome</TableHead>
+              <TableHead className="min-w-[200px]">Produto</TableHead>
               <TableHead className="min-w-[120px]">Referência</TableHead>
-              <TableHead className="min-w-[200px]">Categoria</TableHead>
-              <TableHead className="min-w-[150px]">Subcategoria</TableHead>
-              <TableHead className="min-w-[120px]">Tipo de Unidade</TableHead>
-              <TableHead className="text-right min-w-[100px]">Custo Base</TableHead>
-              <TableHead className="text-right min-w-[100px]">Margem (%)</TableHead>
+              <TableHead className="min-w-[150px]">Categoria</TableHead>
+              <TableHead className="min-w-[120px]">Tipo</TableHead>
+              <TableHead className="min-w-[100px]">Unidade</TableHead>
+              <TableHead className="text-right min-w-[100px]">Custo</TableHead>
+              <TableHead className="text-right min-w-[100px]">Preço</TableHead>
               <TableHead className="text-right min-w-[100px]">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredProducts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                   Nenhum produto encontrado
                 </TableCell>
               </TableRow>
             ) : (
-              filteredProducts.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell className="font-medium">{product.nome}</TableCell>
-                  <TableCell className="text-muted-foreground">{product.referencia}</TableCell>
-                  <TableCell className="text-sm">{product.categoria.nome}</TableCell>
-                  <TableCell className="text-sm">{product.tipoProduto}</TableCell>
-                  <TableCell>{product.unidade.sigla || product.unidade.nome}</TableCell>
-                  <TableCell className="text-right">€{product.custoBase.toFixed(2)}</TableCell>
-                  <TableCell className="text-right">{product.margemPadrao}%</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Link href={`/admin/produtos/${product.id}/editar`}>
-                        <Button variant="ghost" size="icon">
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => setDeleteProductId(product.id)}
-                        disabled={isDeleting}
-                      >
-                        {isDeleting && deleteProductId === product.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="h-4 w-4" />
+              filteredProducts.map((product) => {
+                const precoCalculado = product.custoBase * (1 + product.margemPadrao / 100)
+                return (
+                  <TableRow key={product.id} className="hover:bg-muted/50">
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="font-medium">{product.nome}</div>
+                        {product.descricao && (
+                          <div className="text-sm text-muted-foreground line-clamp-1">
+                            {product.descricao}
+                          </div>
                         )}
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
+                        {product.formato && (
+                          <div className="text-xs text-muted-foreground">
+                            {product.formato}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="font-mono text-xs">
+                        {product.referencia}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">{product.categoria.nome}</div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm capitalize">
+                        {product.tipoProduto.replace(/_/g, ' ')}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        {product.unidade.sigla || product.unidade.nome}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="text-sm font-medium">
+                        €{product.custoBase.toFixed(2)}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="space-y-1">
+                        <div className="text-sm font-medium">
+                          €{precoCalculado.toFixed(2)}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {product.margemPadrao}% margem
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Link href={`/admin/produtos/${product.id}/editar`}>
+                          <Button variant="ghost" size="icon" title="Editar produto">
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        </Link>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => setDeleteProductId(product.id)}
+                          disabled={isDeleting}
+                          title="Excluir produto"
+                        >
+                          {isDeleting && deleteProductId === product.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )
+              })
             )}
           </TableBody>
         </Table>
@@ -312,7 +370,7 @@ export default function ProdutosPage() {
                   Desativando...
                 </>
               ) : (
-                "Desativar"
+                "Excluir"
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

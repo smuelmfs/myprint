@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
@@ -33,14 +34,10 @@ interface Extra {
     nome: string
     sigla?: string
   }
-  tipoAplicacao?: string
-  unidadeCobranca?: string
-  custoBase: number
-  margemPadrao: number
+  custo: number | null
+  custoBase?: number | null
+  tipoAplicacao?: string | null
   status: "ATIVO" | "INATIVO"
-  unidadeTipo?: string
-  unidadeFaturamento?: string
-  tipoAplicacao2?: string
   criadoEm: string
   atualizadoEm: string
 }
@@ -58,7 +55,7 @@ export default function ExtrasPage() {
   // Carregar dados iniciais
   useEffect(() => {
     loadData()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadData = async () => {
     try {
@@ -68,6 +65,7 @@ export default function ExtrasPage() {
       const extrasResponse = await fetch("/api/extras")
       if (extrasResponse.ok) {
         const extrasData = await extrasResponse.json()
+        console.log('Extras carregados:', extrasData.data)
         setExtras(extrasData.data || [])
       }
 
@@ -75,6 +73,7 @@ export default function ExtrasPage() {
       const categoriesResponse = await fetch("/api/categorias")
       if (categoriesResponse.ok) {
         const categoriesData = await categoriesResponse.json()
+        console.log('Categorias carregadas:', categoriesData)
         setCategories(categoriesData)
       }
     } catch (error) {
@@ -90,8 +89,20 @@ export default function ExtrasPage() {
   }
 
   const filteredExtras = extras.filter((extra) => {
-    const matchesSearch = extra.nome.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = categoryFilter === "all" || extra.categoria.nome === categoryFilter
+    const matchesSearch = 
+      extra.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (extra.descricao && extra.descricao.toLowerCase().includes(searchTerm.toLowerCase()))
+    
+    // Debug: verificar comparação de categorias
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Filtro categoria extra:', {
+        categoryFilter,
+        extraCategory: extra.categoria.nome,
+        match: categoryFilter === "all" || extra.categoria.nome.toLowerCase().trim() === categoryFilter.toLowerCase().trim()
+      })
+    }
+    
+    const matchesCategory = categoryFilter === "all" || extra.categoria.nome.toLowerCase().trim() === categoryFilter.toLowerCase().trim()
     return matchesSearch && matchesCategory
   })
 
@@ -115,18 +126,18 @@ export default function ExtrasPage() {
         
         const extra = extras.find((e) => e.id === deleteExtraId)
         toast({
-          title: "Extra desativado",
-          description: `O extra "${extra?.nome}" foi desativado e não aparecerá mais na listagem.`,
+          title: "Extra excluido",
+          description: `O extra "${extra?.nome}" foi excluido e não aparecerá mais na listagem.`,
           variant: "destructive",
         })
       } else {
         const error = await response.json()
-        throw new Error(error.message || "Erro ao desativar extra")
+        throw new Error(error.message || "Erro ao excluir extra")
       }
     } catch (error) {
-      console.error("Erro ao desativar extra:", error)
+      console.error("Erro ao excluir extra:", error)
       toast({
-        title: "Erro ao desativar extra",
+        title: "Erro ao excluir extra",
         description: error instanceof Error ? error.message : "Erro desconhecido",
         variant: "destructive",
       })
@@ -174,7 +185,7 @@ export default function ExtrasPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Pesquisar extras..."
+            placeholder="Pesquisar por nome ou descrição..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9"
@@ -199,9 +210,9 @@ export default function ExtrasPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="min-w-[200px]">Nome</TableHead>
-              <TableHead className="min-w-[180px]">Categoria</TableHead>
-              <TableHead className="min-w-[120px]">Tipo de Unidade</TableHead>
+              <TableHead className="min-w-[200px]">Extra</TableHead>
+              <TableHead className="min-w-[150px]">Categoria</TableHead>
+              <TableHead className="min-w-[100px]">Unidade</TableHead>
               <TableHead className="text-right min-w-[100px]">Custo</TableHead>
               <TableHead className="text-right min-w-[100px]">Ações</TableHead>
             </TableRow>
@@ -209,21 +220,52 @@ export default function ExtrasPage() {
           <TableBody>
             {filteredExtras.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                   Nenhum extra encontrado
                 </TableCell>
               </TableRow>
             ) : (
               filteredExtras.map((extra) => (
-                <TableRow key={extra.id}>
-                  <TableCell className="font-medium">{extra.nome}</TableCell>
-                  <TableCell>{extra.categoria.nome}</TableCell>
-                  <TableCell>{extra.unidade.sigla || extra.unidade.nome}</TableCell>
-                  <TableCell className="text-right">€{extra.custoBase.toFixed(2)}</TableCell>
+                <TableRow key={extra.id} className="hover:bg-muted/50">
+                  <TableCell>
+                    <div className="space-y-1">
+                      <div className="font-medium">{extra.nome}</div>
+                      {extra.descricao && (
+                        <div className="text-sm text-muted-foreground line-clamp-1">
+                          {extra.descricao}
+                        </div>
+                      )}
+                      {extra.tipoAplicacao && (
+                        <div className="text-xs text-muted-foreground">
+                          {extra.tipoAplicacao}
+                        </div>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="secondary" className="text-xs">
+                      {extra.categoria.nome}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm">
+                      {extra.unidade.sigla || extra.unidade.nome}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="text-sm font-medium">
+                      €{(extra.custo || 0).toFixed(2)}
+                    </div>
+                    {extra.custoBase && extra.custoBase !== extra.custo && (
+                      <div className="text-xs text-muted-foreground">
+                        Base: €{extra.custoBase.toFixed(2)}
+                      </div>
+                    )}
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Link href={`/admin/extras/${extra.id}/editar`}>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" title="Editar extra">
                           <Pencil className="h-4 w-4" />
                         </Button>
                       </Link>
@@ -233,6 +275,7 @@ export default function ExtrasPage() {
                         className="text-destructive hover:text-destructive"
                         onClick={() => setDeleteExtraId(extra.id)}
                         disabled={isDeleting}
+                        title="Excluir extra"
                       >
                         {isDeleting && deleteExtraId === extra.id ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -274,7 +317,7 @@ export default function ExtrasPage() {
                   Desativando...
                 </>
               ) : (
-                "Desativar"
+                "Excluir"
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
